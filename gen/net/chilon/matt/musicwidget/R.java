@@ -15,8 +15,8 @@ public final class R {
     }
     public static final class id {
         public static final int LinearLayout01=0x7f070001;
-        public static final int TextView01=0x7f070004;
         public static final int cancelbutton=0x7f070003;
+        public static final int infoView=0x7f070004;
         public static final int okbutton=0x7f070002;
         public static final int textView1=0x7f070000;
     }

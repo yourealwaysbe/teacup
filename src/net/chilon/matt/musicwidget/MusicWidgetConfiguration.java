@@ -37,17 +37,6 @@ public class MusicWidgetConfiguration extends Activity {
 		Button ok = (Button) findViewById(R.id.okbutton);
 		ok.setOnClickListener(new OnClickListener() {
 			public void onClick(View view) {
-				
-			    PendingIntent updatepending 
-			    	= MusicWidget.makeControlPendingIntent(self,
-			    			                               MusicWidgetService.UPDATE, 
-			    			                               musicWidgetId);
-			    try {
-			            updatepending.send();
-			    } catch (CanceledException e) {
-			            e.printStackTrace();
-			    }
-				
 				Intent resultValue = new Intent();
 				resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
 				                     musicWidgetId);
