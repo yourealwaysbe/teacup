@@ -1,5 +1,7 @@
 <resources>
 
     <string name="app_name">MusicWidget</string>
+    <string name="noartist"></string>
+    <string name="notrack"></string>
 
 </resources>
