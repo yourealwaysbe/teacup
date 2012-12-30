@@ -3,5 +3,7 @@
     <string name="app_name">MusicWidget</string>
     <string name="noartist"></string>
     <string name="notrack"></string>
+    <string name="albumArtDesc">Album Art</string>
+    <string name="playPauseDesc">Play/Pause</string>
 
 </resources>

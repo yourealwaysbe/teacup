@@ -16,6 +16,7 @@
        	<receiver android:name="MusicWidget" >
 			<intent-filter>
 				<action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+				<action android:name="net.chilon.matt.musicwidget.MusicWidget.PLAY_PAUSE" />
 			</intent-filter>
 			<meta-data android:name="android.appwidget.provider"
 		    	       android:resource="@xml/musicwidget_info" />
