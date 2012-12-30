@@ -17,6 +17,9 @@
 			<intent-filter>
 				<action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
 				<action android:name="net.chilon.matt.musicwidget.MusicWidget.PLAY_PAUSE" />
+				<action android:name="net.chilon.matt.musicwidget.MusicWidget.LAUNCH_PLAYER" />
+				<action android:name="net.chilon.matt.musicwidget.MusicWidget.JUMP_NEXT" />
+				<action android:name="net.chilon.matt.musicwidget.MusicWidget.JUMP_PREV" />
 			</intent-filter>
 			<meta-data android:name="android.appwidget.provider"
 		    	       android:resource="@xml/musicwidget_info" />

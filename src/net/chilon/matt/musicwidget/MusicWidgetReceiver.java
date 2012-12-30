@@ -11,7 +11,10 @@ import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 import android.provider.MediaStore;
 import android.support.v4.content.CursorLoader;
+import android.view.LayoutInflater;
 import android.widget.RemoteViews;
+import android.widget.TextView;
+import android.view.View;
 
 
 public class MusicWidgetReceiver extends BroadcastReceiver {
@@ -19,14 +22,23 @@ public class MusicWidgetReceiver extends BroadcastReceiver {
 	private static final String INTENT_TRACK_ID = "id";
 	private static final String INTENT_ARTIST = "artist";
 	private static final String INTENT_TRACK = "track";
+	private static final String INTENT_PLAYING = "playing";
 	
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		String artist = getArtist(context, intent);
 		String track = getTrack(context, intent);
 	    Bitmap artBmp = getArtBmp(context, intent);
+	    Bitmap playButton = getPlayButton(context, intent);
 	    
-	    updateWidget(context, artist, track, artBmp);
+	    updateWidget(context, artist, track, playButton, artBmp);
+	}
+	
+	private Bitmap getPlayButton(Context context, Intent intent) {
+		boolean playing = intent.getBooleanExtra(INTENT_PLAYING, false);
+		int imgId = playing ? R.drawable.ic_pause : R.drawable.ic_play;
+		return BitmapFactory.decodeResource(context.getResources(), 
+                                            imgId);
 	}
 	
 	private String getArtist(Context context, Intent intent) {
@@ -89,7 +101,8 @@ public class MusicWidgetReceiver extends BroadcastReceiver {
 	
 	private void updateWidget(Context context,
 			                  String artist, 
-			                  String track, 
+			                  String track,
+			                  Bitmap playButton,
 			                  Bitmap artBmp) {
 	    Context appContext = context.getApplicationContext();
 	    AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(appContext);
@@ -98,8 +111,9 @@ public class MusicWidgetReceiver extends BroadcastReceiver {
 	   	
 	    views.setTextViewText(R.id.artistView, artist);
 	    views.setTextViewText(R.id.trackView,  track);
-	    views.setImageViewBitmap(R.id.albumArtView, artBmp);
-	    	
+	    views.setImageViewBitmap(R.id.albumArtButton, artBmp);
+	    views.setImageViewBitmap(R.id.playPauseButton, playButton);
+	    
 	    ComponentName thisWidget = new ComponentName(context, MusicWidget.class);
 	    appWidgetManager.updateAppWidget(thisWidget, views);
 	}

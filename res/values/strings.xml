@@ -1,9 +1,11 @@
 <resources>
 
     <string name="app_name">MusicWidget</string>
-    <string name="noartist"></string>
-    <string name="notrack"></string>
-    <string name="albumArtDesc">Album Art</string>
-    <string name="playPauseDesc">Play/Pause</string>
+    <string name="notrack">It\'s oh so quiet.</string>
+    <string name="albumArtDesc">Album Art.</string>
+    <string name="playPauseDesc">Play/Pause.</string>
+    <string name="noartist">Shh!</string>
+    <string name="jumpNextDesc">Jump to next track.</string>
+    <string name="jumpPrevDesc">Jump to previous track.</string>
 
 </resources>
