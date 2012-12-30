@@ -11,8 +11,6 @@ import android.widget.RemoteViews;
 public class MusicWidgetReceiver extends BroadcastReceiver {
 	    @Override
 	    public void onReceive(Context context, Intent intent) {
-	    	System.out.println("receive: " + intent);
-	    	
 	    	String artist = intent.getStringExtra("artist");
 	    	String track = intent.getStringExtra("track");
 	    	String info = artist + " / " + track;
