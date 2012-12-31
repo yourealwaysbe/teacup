@@ -69,7 +69,7 @@ public class TeaCup extends AppWidgetProvider {
     private PendingIntent makeCmdPendingIntent(Context context, 
     		                                   String command) {
     	Intent i = new Intent(MUSIC_SERVICE_CMD);
-    	i.putExtra(INTENT_COMMAND,  CMD_PLAY_PAUSE);
+    	i.putExtra(INTENT_COMMAND, command);
     	return PendingIntent.getBroadcast(context, 0, i, 0);
     }
 }
