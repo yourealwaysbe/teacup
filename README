@@ -6,4 +6,32 @@ the music player.
 Icons shamelessly stolen from the web.  They're all free for non-commercial use,
 but i wasn't careful enough to keep track of where i got them from...
 
-Hopefully all the files you need to compile are here.
+Hopefully all the files you need to compile are here...
+
+... except a build system...
+
+Linux-wise, you should be able to run
+
+    android update project --path . --target android-10
+
+assuming you've set-up the android-sdk with android-10 (probably compiles for
+other targets).  (Run simply "android" to start setting up targets.)
+
+And that will generate build.xml and local.properties, then you should be able
+to do
+
+    ant debug
+
+and an .apk will be built and put in bin/.
+
+I've included build.xml.generated and local.properties.generated which are the
+files generated on my machine.  Renames to build.xml and local.properties, maybe
+they'll work for you.
+
+For more on building, see here
+
+    https://developer.android.com/tools/building/building-cmdline.html
+
+and here
+
+    http://www.androidengineer.com/2010/06/using-ant-to-automate-building-android.html
