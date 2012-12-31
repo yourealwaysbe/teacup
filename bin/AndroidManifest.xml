@@ -16,6 +16,9 @@
        	<receiver android:name="TeaCup" >
 			<intent-filter>
 				<action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+				<action android:name="net.chilon.matt.teacup.TeaCup.BTN_JUMP_NEXT" />
+				<action android:name="net.chilon.matt.teacup.TeaCup.BTN_JUMP_PREV" />
+				<action android:name="net.chilon.matt.teacup.TeaCup.BTN_PLAY_PAUSE" />
 			</intent-filter>
 			<meta-data android:name="android.appwidget.provider"
 		    	       android:resource="@xml/teacup_info" />

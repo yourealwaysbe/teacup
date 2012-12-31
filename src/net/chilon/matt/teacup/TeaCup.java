@@ -10,6 +10,10 @@ import android.widget.RemoteViews;
 
 public class TeaCup extends AppWidgetProvider {
 	
+	public static final String BTN_JUMP_NEXT = "jump-next";
+	public static final String BTN_JUMP_PREV = "jump-prev";
+	public static final String BTN_PLAY_PAUSE = "play-pause";
+	
 	private static final String MUSIC_PLAYER = "com.android.music";
 	private static final String MUSIC_SERVICE_CMD = "com.android.music.musicservicecommand";
 	private static final String INTENT_COMMAND = "command";
@@ -34,6 +38,14 @@ public class TeaCup extends AppWidgetProvider {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+    	String action = intent.getAction();
+    	if (action.equals(BTN_JUMP_NEXT)) {
+    		onClickJumpNext(context, intent);
+    	} else if (action.equals(BTN_JUMP_PREV)) {
+    		onClickJumpPrev(context, intent);
+    	} else if (action.equals(BTN_PLAY_PAUSE)) {
+    		onClickPlayPause(context, intent);
+    	}
     	super.onReceive(context, intent);
     }
 
@@ -45,10 +57,9 @@ public class TeaCup extends AppWidgetProvider {
     	RemoteViews remoteViews = new RemoteViews(context.getPackageName(), 
     			                                  R.layout.teacup);
     	
-
-    	PendingIntent playPause = makeCmdPendingIntent(context, CMD_PLAY_PAUSE);
-    	PendingIntent jumpNext = makeCmdPendingIntent(context, CMD_JUMP_NEXT);
-    	PendingIntent jumpPrev = makeCmdPendingIntent(context, CMD_JUMP_PREV);
+    	PendingIntent playPause = makePendingIntent(context, BTN_PLAY_PAUSE);
+    	PendingIntent jumpNext = makePendingIntent(context, BTN_JUMP_NEXT);
+    	PendingIntent jumpPrev = makePendingIntent(context, BTN_JUMP_PREV);
     	PendingIntent launchPlayer = makeLaunchPendingIntent(context);
     	
     	remoteViews.setOnClickPendingIntent(R.id.playPauseButton, playPause);
@@ -61,15 +72,32 @@ public class TeaCup extends AppWidgetProvider {
    		super.onUpdate(context, appWidgetManager, appWidgetIds);
     }
     
-    public PendingIntent makeLaunchPendingIntent(Context context) {
+    private PendingIntent makePendingIntent(Context context, String command) {
+    	Intent i = new Intent(context, TeaCup.class);
+    	i.setAction(command);
+    	return PendingIntent.getBroadcast(context, 0, i, 0);
+    }
+    
+    private PendingIntent makeLaunchPendingIntent(Context context) {
     	Intent li = context.getPackageManager().getLaunchIntentForPackage(MUSIC_PLAYER);
     	return PendingIntent.getActivity(context, 0, li, 0);
     }
     
-    private PendingIntent makeCmdPendingIntent(Context context, 
-    		                                   String command) {
+    private void onClickJumpNext(Context context, Intent intent) {
+    	updatePlayer(context, CMD_JUMP_NEXT);
+    }
+    
+    private void onClickJumpPrev(Context context, Intent intent) {
+    	updatePlayer(context, CMD_JUMP_PREV);
+    }
+    
+    private void onClickPlayPause(Context context, Intent intent) {
+    	updatePlayer(context, CMD_PLAY_PAUSE);
+    }
+        
+    private void updatePlayer(Context context, String command) {
     	Intent i = new Intent(MUSIC_SERVICE_CMD);
     	i.putExtra(INTENT_COMMAND, command);
-    	return PendingIntent.getBroadcast(context, 0, i, 0);
+    	context.sendBroadcast(i);
     }
 }
