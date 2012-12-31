@@ -39,3 +39,6 @@ For more on building, see here
 and here
 
     http://www.androidengineer.com/2010/06/using-ant-to-automate-building-android.html
+
+Then, once it's built, copy the .apk to your phone, open it up and let it
+install.  (Or use adb or whatever you prefer.)
