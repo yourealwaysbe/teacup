@@ -29,7 +29,8 @@ and an .apk will be built and put in bin/.
 
 I've included build.xml.generated and local.properties.generated which are the
 files generated on my machine.  Renames to build.xml and local.properties, maybe
-they'll work for you.
+they'll work for you (if you edit local properties to tell it where the android
+sdk is installed).
 
 For more on building, see here
 
