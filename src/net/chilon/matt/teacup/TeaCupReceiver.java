@@ -94,9 +94,10 @@ public class TeaCupReceiver extends BroadcastReceiver {
 				public boolean accept(File file) {
 					String filename = file.getName();
 					return filename.endsWith(".jpg") ||
-							filename.endsWith(".jpeg") ||
-							filename.endsWith(".bmp") ||
-							filename.endsWith(".png");
+						   filename.endsWith(".jpeg") ||
+						   filename.endsWith(".bmp") ||
+						   filename.endsWith(".png") ||
+						   filename.endsWith(".gif");
 				}
 			};
 	    
