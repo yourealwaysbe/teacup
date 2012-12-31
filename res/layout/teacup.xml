@@ -14,7 +14,7 @@
         android:layout_gravity="center_vertical"
     	android:background="@android:color/transparent"
     	android:src="@drawable/ic_blankalbum"
-    	android:scaleType="fitXY"
+    	android:scaleType="centerInside"
         android:contentDescription="@string/albumArtDesc" />
 
     <LinearLayout
