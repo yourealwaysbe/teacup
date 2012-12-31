@@ -1,7 +1,8 @@
 
 A simple desktop music widget for Android primarily designed to be used with the
-stock player.  Shows embedded art, play, prev, next buttons.  Press album art to
-open the music player.
+stock player.  Shows embedded art (or else any image file in the same directory
+as the track file), play, prev, next buttons.  Press album art to open the music
+player.
 
 Written and tested for Android 2.3.3 (Android 10) on a Samsung Galaxy Mini 2,
 but seems to compile and work in emulators for 4.2 (Android 17).
