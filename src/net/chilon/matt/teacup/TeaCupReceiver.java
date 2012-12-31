@@ -1,5 +1,6 @@
-package net.chilon.matt.musicwidget;
+package net.chilon.matt.teacup;
 
+import net.chilon.matt.teacup.R;
 import android.appwidget.AppWidgetManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -17,7 +18,7 @@ import android.widget.TextView;
 import android.view.View;
 
 
-public class MusicWidgetReceiver extends BroadcastReceiver {
+public class TeaCupReceiver extends BroadcastReceiver {
 	
 	private static final String INTENT_TRACK_ID = "id";
 	private static final String INTENT_ARTIST = "artist";
@@ -107,14 +108,14 @@ public class MusicWidgetReceiver extends BroadcastReceiver {
 	    Context appContext = context.getApplicationContext();
 	    AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(appContext);
 	    RemoteViews views = new RemoteViews(appContext.getPackageName(), 
-	                                        R.layout.musicwidget);
+	                                        R.layout.teacup);
 	   	
 	    views.setTextViewText(R.id.artistView, artist);
 	    views.setTextViewText(R.id.trackView,  track);
 	    views.setImageViewBitmap(R.id.albumArtButton, artBmp);
 	    views.setImageViewBitmap(R.id.playPauseButton, playButton);
 	    
-	    ComponentName thisWidget = new ComponentName(context, MusicWidget.class);
+	    ComponentName thisWidget = new ComponentName(context, TeaCup.class);
 	    appWidgetManager.updateAppWidget(thisWidget, views);
 	}
 

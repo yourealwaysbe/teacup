@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="net.chilon.matt.musicwidget"
+    package="net.chilon.matt.teacup"
     android:versionCode="1"
     android:versionName="1.0" >
 
@@ -13,16 +13,12 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         
-       	<receiver android:name="MusicWidget" >
+       	<receiver android:name="TeaCup" >
 			<intent-filter>
 				<action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-				<action android:name="net.chilon.matt.musicwidget.MusicWidget.PLAY_PAUSE" />
-				<action android:name="net.chilon.matt.musicwidget.MusicWidget.LAUNCH_PLAYER" />
-				<action android:name="net.chilon.matt.musicwidget.MusicWidget.JUMP_NEXT" />
-				<action android:name="net.chilon.matt.musicwidget.MusicWidget.JUMP_PREV" />
 			</intent-filter>
 			<meta-data android:name="android.appwidget.provider"
-		    	       android:resource="@xml/musicwidget_info" />
+		    	       android:resource="@xml/teacup_info" />
 		</receiver>
 		
 		<activity android:name="MusicWidgetConfiguration"
@@ -32,7 +28,7 @@
 			</intent-filter>
 		</activity>
 		
-		<receiver android:name="MusicWidgetReceiver" >
+		<receiver android:name="TeaCupReceiver" >
 			<intent-filter>
 			    <action android:name="com.android.music.metachanged" />
 			    <action android:name="com.android.music.playstatechanged" />

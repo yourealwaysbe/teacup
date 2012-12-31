@@ -1,35 +1,31 @@
-package net.chilon.matt.musicwidget;
+package net.chilon.matt.teacup;
 
+import net.chilon.matt.teacup.R;
 import android.app.Activity;
-import android.app.AlarmManager;
-import android.app.PendingIntent;
-import android.app.PendingIntent.CanceledException;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
-public class MusicWidgetConfiguration extends Activity {
+public class TeaCupConfiguration extends Activity {
     private Context self = this;
 
-	private int musicWidgetId;
+	private int teaCupId;
 	
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
 		Intent launchIntent = getIntent();
 		Bundle extras = launchIntent.getExtras();
-		musicWidgetId = extras.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID,
+		teaCupId = extras.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID,
 		                              AppWidgetManager.INVALID_APPWIDGET_ID);
 		
 		Intent cancelResultValue = new Intent();
 		cancelResultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, 
-		                           musicWidgetId);
+		                           teaCupId);
 		setResult(RESULT_CANCELED, cancelResultValue);
 		
 		setContentView(R.layout.configuration);
@@ -39,7 +35,7 @@ public class MusicWidgetConfiguration extends Activity {
 			public void onClick(View view) {
 				Intent resultValue = new Intent();
 				resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
-				                     musicWidgetId);
+				                     teaCupId);
 				setResult(RESULT_OK, resultValue);
 				finish();
 				
