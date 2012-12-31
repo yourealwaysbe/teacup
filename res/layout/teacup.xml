@@ -3,7 +3,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal" 
-    android:padding="10dp">
+    android:padding="15dp"
+    android:background="@drawable/background"
+    android:gravity="center_vertical">
 
     <ImageButton
         android:id="@+id/albumArtButton"
@@ -29,72 +31,68 @@
             android:layout_height="wrap_content"
             android:text="@string/noartist"
             android:ellipsize="end"
-            android:maxLines="2"
+            android:maxLines="1"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textStyle="bold" 
-            android:textColor="#ffffff" />
+            android:textColor="#ffffff"
+            android:gravity="center" />
 
         <TextView
             android:id="@+id/trackView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
-            android:maxLines="2"
+            android:maxLines="1"
             android:text="@string/notrack"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="#ffffff" />
+            android:textAppearance="?android:attr/textAppearance"
+            android:textColor="#ffffff"
+            android:gravity="center" />
 
-    </LinearLayout>
-    
-    <LinearLayout
-        android:layout_width="85dp"
-        android:layout_height="80dp"
-        android:orientation="horizontal"
-        android:layout_gravity="center_vertical"
-        android:gravity="right" 
-        android:padding="0dp">
-
-    	<ImageButton
-    	    android:id="@+id/playPauseButton"
-    	    android:layout_width="44dp"
-    	    android:layout_height="40dp"
-    	    android:layout_gravity="center_vertical"
-    	    android:background="@android:color/transparent"
-    	    android:contentDescription="@string/playPauseDesc"
-    	    android:longClickable="true"
-    	    android:paddingRight="4dp"
-    	    android:scaleType="fitXY"
-    	    android:src="@drawable/ic_play" />
     	
 	    <LinearLayout
-    	    android:layout_width="38dp"
-        	android:layout_height="wrap_content"
-        	android:orientation="vertical"
+    	    android:layout_width="match_parent"
+        	android:layout_height="20dp"
+        	android:orientation="horizontal"
         	android:layout_gravity="center_vertical"
-        	android:padding="0dp">
-    	
-    		<ImageButton
-    	    	android:id="@+id/jumpNextButton"
-    	    	android:layout_width="38dp"
-    	    	android:layout_height="42dp"
-    	    	android:layout_gravity="center_vertical"
-    	    	android:background="@android:color/transparent"
-    	    	android:contentDescription="@string/jumpNextDesc"
-    	    	android:scaleType="fitXY"
-    	    	android:src="@drawable/ic_jump_next" 
-    	    	android:paddingBottom="2dp"/>
-       
+        	android:paddingTop="2dp">
+
     		<ImageButton
     	    	android:id="@+id/jumpPrevButton"
-    	    	android:layout_width="38dp"
-    	    	android:layout_height="38dp"
+    	    	android:layout_width="0dp"
+    	    	android:layout_weight="2"
+    	    	android:layout_height="match_parent"
     	    	android:layout_gravity="center_vertical"
     	    	android:background="@android:color/transparent"
     	    	android:contentDescription="@string/jumpPrevDesc"
-    	    	android:scaleType="fitXY"
+    	    	android:scaleType="fitCenter"
     	    	android:src="@drawable/ic_jump_prev" />
+       	        
+	        <ImageButton
+    	    	android:id="@+id/playPauseButton"
+    	    	android:layout_width="0dp"
+    	    	android:layout_height="match_parent"
+    	    	android:layout_weight="1"
+    	    	android:layout_gravity="center_vertical"
+    	    	android:background="@android:color/transparent"
+    	    	android:contentDescription="@string/playPauseDesc"
+    	    	android:scaleType="fitCenter"
+    	    	android:src="@drawable/ic_play" />
+	        
+	        	
+    		<ImageButton
+    	    	android:id="@+id/jumpNextButton"
+    	    	android:layout_width="0dp"
+    	    	android:layout_height="match_parent"
+    	    	android:layout_weight="2"
+    	    	android:layout_gravity="center_vertical"
+    	    	android:background="@android:color/transparent"
+    	    	android:contentDescription="@string/jumpNextDesc"
+    	    	android:scaleType="fitCenter"
+    	    	android:src="@drawable/ic_jump_next"/>
        
-    	</LinearLayout>
-    </LinearLayout>
 
+    	</LinearLayout>
+        
+    </LinearLayout>
+    
 </LinearLayout>
