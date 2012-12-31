@@ -61,9 +61,10 @@
     	    android:layout_gravity="center_vertical"
     	    android:background="@android:color/transparent"
     	    android:contentDescription="@string/playPauseDesc"
+    	    android:longClickable="true"
+    	    android:paddingRight="4dp"
     	    android:scaleType="fitXY"
-    	    android:src="@drawable/ic_play" 
-    	    android:paddingRight="4dp"/>
+    	    android:src="@drawable/ic_play" />
     	
 	    <LinearLayout
     	    android:layout_width="38dp"

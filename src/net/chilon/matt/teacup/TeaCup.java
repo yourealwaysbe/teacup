@@ -1,6 +1,8 @@
 package net.chilon.matt.teacup;
 
 import net.chilon.matt.teacup.R;
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningServiceInfo;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
@@ -96,8 +98,23 @@ public class TeaCup extends AppWidgetProvider {
     }
         
     private void updatePlayer(Context context, String command) {
-    	Intent i = new Intent(MUSIC_SERVICE_CMD);
-    	i.putExtra(INTENT_COMMAND, command);
-    	context.sendBroadcast(i);
+    	if (isMusicRunning(context)) {
+    		Intent i = new Intent(MUSIC_SERVICE_CMD);
+    		i.putExtra(INTENT_COMMAND, command);
+    		context.sendBroadcast(i);
+    	} else {
+    	   	Intent li = context.getPackageManager().getLaunchIntentForPackage(MUSIC_PLAYER);
+    	   	context.startActivity(li);
+    	}
+    }
+    
+    private boolean isMusicRunning(Context context) {
+        ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (MUSIC_PLAYER.equals(service.service.getPackageName())) {
+                return true;
+            }
+        }
+        return false;
     }
 }
