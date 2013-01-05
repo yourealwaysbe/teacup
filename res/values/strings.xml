@@ -10,11 +10,41 @@
     <string name="albumArtSelect">Album art sources</string>
     <string name="getEmbeddedArt">Embedded art</string>
     <string name="getDirectoryArt">Music file directory</string>
-    <string name="statusChangedAction">Status changed intent</string>
-    <string name="statusChangedId">Status changed track ID</string>
-    <string name="statusChangedActionHint">The action broadcast by your music player when the track info changes.</string>
-    <string name="statusChangedIdHint">The id field of the playing track in the broadcast intent action.</string>
     <string name="playerSelectDesc">Choose music player</string>
     <string name="playerSelected">Android Player</string>
     <string name="selectPlayerDesc">The music application for the widget.</string>
+
+    <string name="metaChangedAction">Metadata changed intent</string>
+    <string name="metaChangedId">Metadata changed track ID field.</string>
+    <string name="metaChangedActionHint">The action broadcast by your music player when the track metadata changes.</string>
+    <string name="metaChangedIdHint">The id field of the playing track in the broadcast intent action.</string>
+    
+    <string name="playerLaunchAction">Launch Action</string>
+    <string name="playerLaunchActionHint">The action that launches the music player.</string>
+    <string name="playstateChangedAction">Playstate changed action</string>
+    <string name="playstateChangedActionHint">The action broadcast when toggling between play and pause.</string>
+    <string name="playstateChangedPlaying">Playstate changed \'playing\' field</string>
+    <string name="playstateChangedPlayingHint">The field indicating whether the current track is playing or paused.</string>
+    
+    <string name="jumpPreviousAction">Jump previous action</string>
+    <string name="jumpPreviousActionHint">The action to broadcast to jump to the previous track.</string>
+	<string name="jumpPreviousCommandField">Jump previous command field label</string>
+	<string name="jumpPreviousCommandFieldHint">The field label of the jump previous command.</string>
+	<string name="jumpPreviousCommand">Jump previous command</string>
+	<string name="jumpPreviousCommandHint">The command value for jump previous.</string>
+
+	<string name="playPauseAction">Play/pause action</string>
+    <string name="playPauseActionHint">The action to broadcast to toggle play/pause.</string>
+	<string name="playPauseCommandField">Play/pause command field label</string>
+	<string name="playPauseCommandFieldHint">The field label of the play/pause command.</string>
+	<string name="playPauseCommand">Play/pause command</string>
+	<string name="playPauseCommandHint">The command value for play/pause.</string>
+
+    <string name="jumpNextAction">Jump next action</string>
+    <string name="jumpNextActionHint">The action to broadcast to jump to the next track.</string>
+	<string name="jumpNextCommandField">Jump next command field label</string>
+	<string name="jumpNextCommandFieldHint">The field label of the jump next command.</string>
+	<string name="jumpNextCommand">Jump next command</string>
+	<string name="jumpNextCommandHint">The command value for jump next.</string>
+		
 </resources>

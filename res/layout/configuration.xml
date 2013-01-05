@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".TeaCupConfiguration" >
-
+<RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
     <TextView
         android:id="@+id/albumArtSelect"
         android:layout_width="match_parent"
@@ -109,37 +111,233 @@
         android:visibility="gone"
         android:layout_below="@id/selectPlayerRadioGroup"
         android:orientation="vertical">
- 
-    	<TextView
-        	android:id="@+id/statusChangedActionText"
+
+        <TextView
+        	android:id="@+id/playerLaunchActionText"
         	android:layout_width="match_parent"
         	android:layout_height="wrap_content"
-        	android:text="@string/statusChangedAction"
-        	android:textAppearance="?android:attr/textAppearanceLarge" />
+        	android:text="@string/playerLaunchAction"
+        	android:textAppearance="?android:attr/textAppearanceMedium" />
 
     	<EditText
-        	android:id="@+id/statusChangedAction"
+        	android:id="@+id/playerLaunchAction"
         	android:layout_width="match_parent"
         	android:layout_height="wrap_content"
         	android:ems="10"
+        	android:maxLines="1"
         	android:inputType="textUri"
-        	android:hint="@string/statusChangedActionHint" />
-
+        	android:hint="@string/playerLaunchActionHint" />
+        
     	<TextView
-        	android:id="@+id/statusChangedIdText"
+        	android:id="@+id/metaChangedActionText"
         	android:layout_width="match_parent"
         	android:layout_height="wrap_content"
-        	android:text="@string/statusChangedId"
-        	android:textAppearance="?android:attr/textAppearanceLarge" />
+        	android:text="@string/metaChangedAction"
+        	android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    	<EditText
+        	android:id="@+id/metaChangedAction"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:ems="10"
+        	android:maxLines="1"
+        	android:inputType="textUri"
+        	android:hint="@string/metaChangedActionHint" />
+
+    	<TextView
+        	android:id="@+id/metaChangedIdText"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:text="@string/metaChangedId"
+        	android:textAppearance="?android:attr/textAppearanceMedium" />
     
     	<EditText
-        	android:id="@+id/statusChangedId"
+        	android:id="@+id/metaChangedId"
         	android:layout_width="match_parent"
         	android:layout_height="wrap_content"
         	android:inputType="text"
-        	android:hint="@string/statusChangedIdHint"
+        	android:maxLines="1"
+        	android:hint="@string/metaChangedIdHint"
         	android:ems="10" />
+    	
+    	<TextView
+        	android:id="@+id/playstateChangedActionText"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:text="@string/playstateChangedAction"
+        	android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    	<EditText
+        	android:id="@+id/playstateChangedAction"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:inputType="textUri"
+        	android:maxLines="1"
+        	android:hint="@string/playstateChangedActionHint"
+        	android:ems="10" />
+    	
+    	<TextView
+        	android:id="@+id/playstateChangedPlayingText"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:text="@string/playstateChangedPlaying"
+        	android:textAppearance="?android:attr/textAppearanceMedium" />
+    			
+    	<EditText
+        	android:id="@+id/playstateChangedPlaying"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:inputType="text"
+        	android:maxLines="1"
+        	android:hint="@string/playstateChangedPlaying"
+        	android:ems="10" />
+    	
+    	<TextView
+        	android:id="@+id/jumpPreviousActionText"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:text="@string/jumpPreviousAction"
+        	android:textAppearance="?android:attr/textAppearanceMedium" />
     
+    	<EditText
+        	android:id="@+id/jumpPreviousAction"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:inputType="textUri"
+        	android:maxLines="1"
+        	android:hint="@string/jumpPreviousActionHint"
+        	android:ems="10" />
+    	
+    	<TextView
+        	android:id="@+id/jumpPreviousCommandFieldText"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:text="@string/jumpPreviousCommandField"
+        	android:textAppearance="?android:attr/textAppearanceMedium" />
+    
+    	<EditText
+        	android:id="@+id/jumpPreviousCommandField"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:inputType="text"
+        	android:maxLines="1"
+        	android:hint="@string/jumpPreviousCommandFieldHint"
+        	android:ems="10" />
+    	
+    	<TextView
+        	android:id="@+id/jumpPreviousCommandText"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:text="@string/jumpPreviousCommand"
+        	android:textAppearance="?android:attr/textAppearanceMedium" />
+    
+    	<EditText
+        	android:id="@+id/jumpPreviousCommand"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:inputType="text"
+        	android:maxLines="1"
+        	android:hint="@string/jumpPreviousCommandHint"
+        	android:ems="10" />
+
+    	<TextView
+        	android:id="@+id/playPauseActionText"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:text="@string/playPauseAction"
+        	android:textAppearance="?android:attr/textAppearanceMedium" />
+    
+    	<EditText
+        	android:id="@+id/playPauseAction"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:inputType="textUri"
+        	android:maxLines="1"
+        	android:hint="@string/playPauseActionHint"
+        	android:ems="10" />
+    	
+    	<TextView
+        	android:id="@+id/playPauseCommandFieldText"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:text="@string/playPauseCommandField"
+        	android:textAppearance="?android:attr/textAppearanceMedium" />
+    
+    	<EditText
+        	android:id="@+id/playPauseCommandField"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:inputType="text"
+        	android:maxLines="1"
+        	android:hint="@string/playPauseCommandFieldHint"
+        	android:ems="10" />
+    	
+    	<TextView
+        	android:id="@+id/playPauseCommandText"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:text="@string/playPauseCommand"
+        	android:textAppearance="?android:attr/textAppearanceMedium" />
+    
+    	<EditText
+        	android:id="@+id/playPauseCommand"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:inputType="text"
+        	android:maxLines="1"
+        	android:hint="@string/playPauseCommandHint"
+        	android:ems="10" />
+    	
+    	  	
+    	<TextView
+        	android:id="@+id/jumpNextActionText"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:text="@string/jumpNextAction"
+        	android:textAppearance="?android:attr/textAppearanceMedium" />
+    
+    	<EditText
+        	android:id="@+id/jumpNextAction"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:maxLines="1"
+        	android:inputType="textUri"
+        	android:hint="@string/jumpNextActionHint"
+        	android:ems="10" />
+    	
+    	<TextView
+        	android:id="@+id/jumpNextCommandFieldText"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:text="@string/jumpNextCommandField"
+        	android:textAppearance="?android:attr/textAppearanceMedium" />
+    
+    	<EditText
+        	android:id="@+id/jumpNextCommandField"
+        	android:maxLines="1"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:inputType="text"
+        	android:hint="@string/jumpNextCommandFieldHint"
+        	android:ems="10" />
+    	
+    	<TextView
+        	android:id="@+id/jumpNextCommandText"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:text="@string/jumpNextCommand"
+        	android:textAppearance="?android:attr/textAppearanceMedium" />
+    
+    	<EditText
+        	android:id="@+id/jumpNextCommand"
+        	android:maxLines="1"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:inputType="text"
+        	android:hint="@string/jumpNextCommandHint"
+        	android:ems="10" />
+    		
+
 	</LinearLayout>
     
     
@@ -147,9 +345,10 @@
         android:id="@+id/buttonsLayout"
         android:layout_width="match_parent"
         android:gravity="center"
-        android:layout_alignParentBottom="true"
+        android:layout_below="@id/customPlayerOptions"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:paddingTop="20dp">
        
        <Button android:layout_width="wrap_content"
                android:layout_height="wrap_content"
@@ -163,3 +362,4 @@
     </LinearLayout>
     
 </RelativeLayout>
+</ScrollView>
