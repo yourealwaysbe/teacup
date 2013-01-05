@@ -104,11 +104,37 @@ public class Config {
         		                          DEFAULT_GET_EMBEDDED_ART);
 		getDirectoryArt = prefs.getBoolean(GET_DIRECTORY_ART, 
 				                           DEFAULT_GET_DIRECTORY_ART);
+		selectedPlayerId = prefs.getInt(SELECTED_PLAYER_ID, 
+				                        DEFAULT_SELECTED_PLAYER_ID);
+		playerLaunchAction = prefs.getString(PLAYER_LAUNCH_ACTION,
+				                             DEFAULT_PLAYER_LAUNCH_ACTION);
 		metaChangedAction = prefs.getString(META_CHANGED_ACTION, 
 				                            DEFAULT_META_CHANGED_ACTION);
 		metaChangedId = prefs.getString(META_CHANGED_ID,
 				                        DEFAULT_META_CHANGED_ID);
-		
+		playstateChangedAction = prefs.getString(PLAYSTATE_CHANGED_ACTION,
+				                                 DEFAULT_PLAYSTATE_CHANGED_ACTION);
+		playstateChangedPlaying = prefs.getString(PLAYSTATE_CHANGED_PLAYING,
+				                                  DEFAULT_PLAYSTATE_CHANGED_PLAYING);
+		jumpPreviousAction = prefs.getString(JUMP_PREVIOUS_ACTION,
+				                             DEFAULT_JUMP_PREVIOUS_ACTION);
+		jumpPreviousCommandField = prefs.getString(JUMP_PREVIOUS_COMMAND_FIELD,
+				                                   DEFAULT_JUMP_PREVIOUS_COMMAND_FIELD);
+		jumpPreviousCommand = prefs.getString(JUMP_PREVIOUS_COMMAND,
+				                              DEFAULT_JUMP_PREVIOUS_COMMAND);
+		playPauseAction = prefs.getString(PLAY_PAUSE_ACTION,
+                                          DEFAULT_PLAY_PAUSE_ACTION);
+		playPauseCommandField = prefs.getString(PLAY_PAUSE_COMMAND_FIELD,
+                                                DEFAULT_PLAY_PAUSE_COMMAND_FIELD);
+		playPauseCommand = prefs.getString(PLAY_PAUSE_COMMAND,
+                                           DEFAULT_PLAY_PAUSE_COMMAND);
+		jumpNextAction = prefs.getString(JUMP_NEXT_ACTION,
+                                         DEFAULT_JUMP_NEXT_ACTION);
+		jumpNextCommandField = prefs.getString(JUMP_NEXT_COMMAND_FIELD,
+                                               DEFAULT_JUMP_NEXT_COMMAND_FIELD);
+		jumpNextCommand = prefs.getString(JUMP_NEXT_COMMAND,
+                                          DEFAULT_JUMP_NEXT_COMMAND);
+
 		System.out.println("Read from shared" + this);
 	}
 		
