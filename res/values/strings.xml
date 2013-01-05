@@ -7,5 +7,11 @@
     <string name="noartist">Shh!</string>
     <string name="jumpNextDesc">Jump to next track.</string>
     <string name="jumpPrevDesc">Jump to previous track.</string>
-
+    <string name="albumArtSelect">Album art sources</string>
+    <string name="getEmbeddedArt">Embedded art</string>
+    <string name="getDirectoryArt">Music file directory</string>
+    <string name="statusChangedAction">Status changed intent</string>
+    <string name="statusChangedId">Status changed track ID</string>
+    <string name="statusChangedActionHint">The action broadcast by your music player when the track info changes.</string>
+    <string name="statusChangedIdHint">The id field of the playing track in the broadcast intent action.</string>
 </resources>

@@ -8,6 +8,7 @@ import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.widget.RemoteViews;
 
 public class TeaCup extends AppWidgetProvider {
@@ -30,6 +31,9 @@ public class TeaCup extends AppWidgetProvider {
 
     @Override
     public void onDisabled(Context context) {
+    	Intent i = new Intent(TeaCupService.TEACUP_SERVICE);
+    	i.setClass(context, TeaCupService.class);
+    	context.stopService(i);
     	super.onDisabled(context);
     }
 
@@ -56,6 +60,18 @@ public class TeaCup extends AppWidgetProvider {
                          AppWidgetManager appWidgetManager,
                          int[] appWidgetIds) {
     	
+    	Config config = new Config(context);
+    	
+    	makeButtons(context, appWidgetManager, appWidgetIds, config);
+    	
+   		super.onUpdate(context, appWidgetManager, appWidgetIds);
+    }
+
+    
+    private void makeButtons(Context context, 
+    		                 AppWidgetManager appWidgetManager,
+    		                 int[] appWidgetIds,
+    		                 Config config) {
     	RemoteViews remoteViews = new RemoteViews(context.getPackageName(), 
     			                                  R.layout.teacup);
     	
@@ -69,11 +85,9 @@ public class TeaCup extends AppWidgetProvider {
     	remoteViews.setOnClickPendingIntent(R.id.jumpPrevButton, jumpPrev);
     	remoteViews.setOnClickPendingIntent(R.id.albumArtButton, launchPlayer);
     	
-    	appWidgetManager.updateAppWidget(appWidgetIds, remoteViews);
-    	
-   		super.onUpdate(context, appWidgetManager, appWidgetIds);
+    	appWidgetManager.updateAppWidget(appWidgetIds, remoteViews);	
     }
-    
+        
     private PendingIntent makePendingIntent(Context context, String command) {
     	Intent i = new Intent(context, TeaCup.class);
     	i.setAction(command);
@@ -117,4 +131,6 @@ public class TeaCup extends AppWidgetProvider {
         }
         return false;
     }
+    
+
 }

@@ -1,21 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:orientation="vertical"
+    tools:context=".TeaCupConfiguration" >
 
     <TextView
-        android:id="@+id/textView1"
+        android:id="@+id/albumArtSelect"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="0.36"
-        android:text="Nothing to see here."
+        android:text="@string/albumArtSelect"
         android:textAppearance="?android:attr/textAppearanceLarge" />
     
+    <CheckBox
+        android:id="@+id/getDirectoryArt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/getEmbeddedArt"
+        android:checked="true"
+        android:text="@string/getDirectoryArt" />
+
+    <CheckBox
+        android:id="@+id/getEmbeddedArt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/albumArtSelect"
+        android:checked="true"
+        android:text="@string/getEmbeddedArt" />
+    
+    
+
+
+    <TextView
+        android:id="@+id/statusChangedActionText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/getDirectoryArt"
+        android:text="@string/statusChangedAction"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <EditText
+        android:id="@+id/statusChangedAction"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/statusChangedActionText"
+        android:ems="10"
+        android:inputType="textUri"
+        android:hint="@string/statusChangedActionHint" />
+
+    <TextView
+        android:id="@+id/statusChangedIdText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/statusChangedAction"
+        android:text="@string/statusChangedId"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+    
+    <EditText
+        android:id="@+id/statusChangedId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/statusChangedIdText"
+        android:inputType="text"
+        android:hint="@string/statusChangedIdHint"
+        android:ems="10" />
+
     <LinearLayout
         android:id="@+id/LinearLayout01"
-        android:layout_width="wrap_content"
-        android:layout_centerInParent="true"
+        android:layout_width="match_parent"
+        android:gravity="center"
+        android:layout_alignParentBottom="true"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
        

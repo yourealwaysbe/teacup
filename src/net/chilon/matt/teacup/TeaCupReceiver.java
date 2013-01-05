@@ -9,6 +9,7 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -66,13 +67,19 @@ public class TeaCupReceiver extends BroadcastReceiver {
 	
 	private Bitmap getArtBmp(Context context, Intent intent) {
 		Bitmap artBmp = null;
+			
+        Config config = new Config(context);
 		
-		String playingFilename = getPlayingFilename(context, intent);
-	    	
-	    if (playingFilename != null) {
-	    	artBmp = getFileEmbeddedArt(playingFilename);
-	    	if (artBmp == null) {
-	    		artBmp = getImageFromDirectory(playingFilename);
+		boolean getEmbeddedArt = config.getEmbeddedArt();
+		boolean getDirectoryArt = config.getDirectoryArt();
+		
+		if (getEmbeddedArt || getDirectoryArt) {
+			String playingFilename = getPlayingFilename(context, intent);	
+			if (playingFilename != null) {
+				if (getEmbeddedArt)
+					artBmp = getFileEmbeddedArt(playingFilename);
+				if (artBmp == null && getDirectoryArt) 
+					artBmp = getImageFromDirectory(playingFilename);
 	    	}
 	    }
 	    	
@@ -170,7 +177,7 @@ public class TeaCupReceiver extends BroadcastReceiver {
 	    AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(appContext);
 	    RemoteViews views = new RemoteViews(appContext.getPackageName(), 
 	                                        R.layout.teacup);
-	   	
+	    
 	    views.setTextViewText(R.id.artistView, artist);
 	    views.setTextViewText(R.id.trackView,  track);
 	    views.setImageViewBitmap(R.id.albumArtButton, artBmp);
@@ -209,9 +216,9 @@ public class TeaCupReceiver extends BroadcastReceiver {
 		return BitmapFactory.decodeByteArray(data, 0, data.length);
 	}
 
-	public static int calculateInSampleSize(BitmapFactory.Options options, 
-                                            int reqWidth, 
-                                            int reqHeight) {
+	private static int calculateInSampleSize(BitmapFactory.Options options, 
+                                             int reqWidth, 
+                                             int reqHeight) {
 		final int height = options.outHeight;
 		final int width = options.outWidth;
 		int inSampleSize = 1;
