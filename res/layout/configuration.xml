@@ -12,15 +12,6 @@
         android:layout_height="wrap_content"
         android:text="@string/albumArtSelect"
         android:textAppearance="?android:attr/textAppearanceLarge" />
-    
-    <CheckBox
-        android:id="@+id/getDirectoryArt"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/getEmbeddedArt"
-        android:checked="true"
-        android:text="@string/getDirectoryArt" />
 
     <CheckBox
         android:id="@+id/getEmbeddedArt"
@@ -31,45 +22,129 @@
         android:checked="true"
         android:text="@string/getEmbeddedArt" />
     
-    
-
-
-    <TextView
-        android:id="@+id/statusChangedActionText"
+    <CheckBox
+        android:id="@+id/getDirectoryArt"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/getDirectoryArt"
-        android:text="@string/statusChangedAction"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/getEmbeddedArt"
+        android:checked="true"
+        android:text="@string/getDirectoryArt" />
 
-    <EditText
-        android:id="@+id/statusChangedAction"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/statusChangedActionText"
-        android:ems="10"
-        android:inputType="textUri"
-        android:hint="@string/statusChangedActionHint" />
-
-    <TextView
-        android:id="@+id/statusChangedIdText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/statusChangedAction"
-        android:text="@string/statusChangedId"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-    
-    <EditText
-        android:id="@+id/statusChangedId"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/statusChangedIdText"
-        android:inputType="text"
-        android:hint="@string/statusChangedIdHint"
-        android:ems="10" />
 
     <LinearLayout
-        android:id="@+id/LinearLayout01"
+        android:id="@+id/playerSelectedLine"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/getDirectoryArt" >
+
+        <LinearLayout
+            android:id="@+id/playerSelectDescView"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/playerSelectDesc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/playerSelectDesc"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+            <TextView
+                android:id="@+id/playerSelected"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/playerSelected"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+        </LinearLayout>
+        
+	    <ImageButton
+	        android:id="@+id/choosePlayerButton"
+	        android:layout_width="wrap_content"
+	        android:layout_height="match_parent"
+	        android:layout_gravity="center_vertical"
+	        android:background="@android:color/transparent"
+	        android:contentDescription="@string/selectPlayerDesc"
+	        android:onClick="onClickSelectPlayer"
+	        android:scaleType="fitCenter"
+	        android:src="@drawable/ic_next_arrow" />
+
+    </LinearLayout>
+    
+
+    <RadioGroup
+        android:id="@+id/selectPlayerRadioGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@id/playerSelectedLine"
+        android:visibility="gone" >
+
+        <RadioButton
+            android:id="@+id/androidPlayer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Android Player" 
+            android:onClick="onClickPlayerSelectRadioGroup" />
+
+        <RadioButton
+            android:id="@+id/samsungPlayer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Samsung Player" 
+            android:onClick="onClickPlayerSelectRadioGroup" />
+        
+       <RadioButton
+            android:id="@+id/customPlayer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Custom Player" 
+            android:onClick="onClickPlayerSelectRadioGroup" />
+    </RadioGroup>
+
+    <LinearLayout
+        android:id="@+id/customPlayerOptions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" 
+        android:visibility="gone"
+        android:layout_below="@id/selectPlayerRadioGroup"
+        android:orientation="vertical">
+ 
+    	<TextView
+        	android:id="@+id/statusChangedActionText"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:text="@string/statusChangedAction"
+        	android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    	<EditText
+        	android:id="@+id/statusChangedAction"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:ems="10"
+        	android:inputType="textUri"
+        	android:hint="@string/statusChangedActionHint" />
+
+    	<TextView
+        	android:id="@+id/statusChangedIdText"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:text="@string/statusChangedId"
+        	android:textAppearance="?android:attr/textAppearanceLarge" />
+    
+    	<EditText
+        	android:id="@+id/statusChangedId"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:inputType="text"
+        	android:hint="@string/statusChangedIdHint"
+        	android:ems="10" />
+    
+	</LinearLayout>
+    
+    
+    <LinearLayout
+        android:id="@+id/buttonsLayout"
         android:layout_width="match_parent"
         android:gravity="center"
         android:layout_alignParentBottom="true"
@@ -80,10 +155,11 @@
                android:layout_height="wrap_content"
                android:id="@+id/okbutton"
                android:text="OK"></Button>
+
        <Button android:layout_width="wrap_content"
                android:layout_height="wrap_content"
                android:text="Cancel"
                android:id="@+id/cancelbutton"></Button>
     </LinearLayout>
-
+    
 </RelativeLayout>

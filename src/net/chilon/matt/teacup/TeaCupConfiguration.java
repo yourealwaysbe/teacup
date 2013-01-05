@@ -15,6 +15,10 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.TextView;
 
 public class TeaCupConfiguration extends Activity {
 	
@@ -63,6 +67,32 @@ public class TeaCupConfiguration extends Activity {
 				finish();
 			}
 		});
+	}
+	
+	public void onClickSelectPlayer(View view) {
+		System.out.println("Clicked select player");
+		RadioGroup playerSelect = (RadioGroup) findViewById(R.id.selectPlayerRadioGroup);
+		playerSelect.setVisibility(View.VISIBLE);
+	}
+	
+	public void onClickPlayerSelectRadioGroup(View view) {
+		System.out.println("onClickPlayerSelectRadioGroup");
+		
+		RadioGroup playerSelect = (RadioGroup) findViewById(R.id.selectPlayerRadioGroup);
+		playerSelect.setVisibility(View.GONE);
+		
+		int checkedId = playerSelect.getCheckedRadioButtonId();
+		RadioButton checkedButton = (RadioButton) findViewById(checkedId);
+		
+		TextView playerSelected = (TextView) findViewById(R.id.playerSelected);
+		playerSelected.setText(checkedButton.getText());
+		
+		LinearLayout customPlayerOptions = (LinearLayout) findViewById(R.id.customPlayerOptions);
+		if (checkedId == R.id.customPlayer) {
+			customPlayerOptions.setVisibility(View.VISIBLE);
+		} else {
+			customPlayerOptions.setVisibility(View.GONE);
+		}
 	}
 	
 

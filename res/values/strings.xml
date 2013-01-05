@@ -14,4 +14,7 @@
     <string name="statusChangedId">Status changed track ID</string>
     <string name="statusChangedActionHint">The action broadcast by your music player when the track info changes.</string>
     <string name="statusChangedIdHint">The id field of the playing track in the broadcast intent action.</string>
+    <string name="playerSelectDesc">Choose music player</string>
+    <string name="playerSelected">Android Player</string>
+    <string name="selectPlayerDesc">The music application for the widget.</string>
 </resources>
