@@ -109,13 +109,20 @@ public class TeaCupReceiver extends BroadcastReceiver {
 
         if (directory != null) {
             FileFilter imageFilter = new FileFilter() {
+                boolean found = false;
+
                 public boolean accept(File file) {
-                    String filename = file.getName();
-                    return filename.endsWith(".jpg") ||
-                           filename.endsWith(".jpeg") ||
-                           filename.endsWith(".bmp") ||
-                           filename.endsWith(".png") ||
-                           filename.endsWith(".gif");
+                    if (found) {
+                        return false;
+                    } else {
+                        String filename = file.getName();
+                        found = filename.endsWith(".jpg") ||
+                                filename.endsWith(".jpeg") ||
+                                filename.endsWith(".bmp") ||
+                                filename.endsWith(".png") ||
+                                filename.endsWith(".gif");
+                        return found;
+                    }
                 }
             };
 
