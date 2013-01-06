@@ -12,9 +12,9 @@
         android:layout_width="80dp"
         android:layout_height="80dp"
         android:layout_gravity="center_vertical"
-    	android:background="@android:color/transparent"
-    	android:src="@drawable/ic_blankalbum"
-    	android:scaleType="centerInside"
+        android:background="@android:color/transparent"
+        android:src="@drawable/ic_blankalbum"
+        android:scaleType="centerInside"
         android:contentDescription="@string/albumArtDesc" />
 
     <LinearLayout
@@ -38,60 +38,60 @@
             android:gravity="center" />
 
         <TextView
-            android:id="@+id/trackView"
+            android:id="@+id/titleView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
-            android:text="@string/notrack"
+            android:text="@string/notitle"
             android:textAppearance="?android:attr/textAppearance"
             android:textColor="#ffffff"
             android:gravity="center" />
 
-    	
-	    <LinearLayout
-    	    android:layout_width="match_parent"
-        	android:layout_height="20dp"
-        	android:orientation="horizontal"
-        	android:layout_gravity="center_vertical"
-        	android:paddingTop="2dp">
+        
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="20dp"
+            android:orientation="horizontal"
+            android:layout_gravity="center_vertical"
+            android:paddingTop="2dp">
 
-    		<ImageButton
-    	    	android:id="@+id/jumpPrevButton"
-    	    	android:layout_width="0dp"
-    	    	android:layout_weight="2"
-    	    	android:layout_height="match_parent"
-    	    	android:layout_gravity="center_vertical"
-    	    	android:background="@android:color/transparent"
-    	    	android:contentDescription="@string/jumpPrevDesc"
-    	    	android:scaleType="fitCenter"
-    	    	android:src="@drawable/ic_jump_prev" />
-       	        
-	        <ImageButton
-    	    	android:id="@+id/playPauseButton"
-    	    	android:layout_width="0dp"
-    	    	android:layout_height="match_parent"
-    	    	android:layout_weight="1"
-    	    	android:layout_gravity="center_vertical"
-    	    	android:background="@android:color/transparent"
-    	    	android:contentDescription="@string/playPauseDesc"
-    	    	android:scaleType="fitCenter"
-    	    	android:src="@drawable/ic_play" />
-	        
-	        	
-    		<ImageButton
-    	    	android:id="@+id/jumpNextButton"
-    	    	android:layout_width="0dp"
-    	    	android:layout_height="match_parent"
-    	    	android:layout_weight="2"
-    	    	android:layout_gravity="center_vertical"
-    	    	android:background="@android:color/transparent"
-    	    	android:contentDescription="@string/jumpNextDesc"
-    	    	android:scaleType="fitCenter"
-    	    	android:src="@drawable/ic_jump_next"/>
+            <ImageButton
+                android:id="@+id/jumpPrevButton"
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="match_parent"
+                android:layout_gravity="center_vertical"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/jumpPrevDesc"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_jump_prev" />
+                   
+            <ImageButton
+                android:id="@+id/playPauseButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_gravity="center_vertical"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/playPauseDesc"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_play" />
+            
+                
+            <ImageButton
+                android:id="@+id/jumpNextButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:layout_gravity="center_vertical"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/jumpNextDesc"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_jump_next"/>
        
 
-    	</LinearLayout>
+        </LinearLayout>
         
     </LinearLayout>
     

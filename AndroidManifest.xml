@@ -15,33 +15,33 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         
-       	<receiver android:name="TeaCup" >
-			<intent-filter>
-				<action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-				<action android:name="net.chilon.matt.teacup.TeaCup.BTN_JUMP_NEXT" />
-				<action android:name="net.chilon.matt.teacup.TeaCup.BTN_JUMP_PREV" />
-				<action android:name="net.chilon.matt.teacup.TeaCup.BTN_PLAY_PAUSE" />
-			</intent-filter>
-			<meta-data android:name="android.appwidget.provider"
-		    	       android:resource="@xml/teacup_info" />
-		</receiver>
-		
-		<activity android:name="TeaCupConfiguration"
-		          android:label="@string/app_name" 
-		          android:windowSoftInputMode="stateUnchanged">
-			<intent-filter>
-				<action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+           <receiver android:name="TeaCup" >
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="net.chilon.matt.teacup.TeaCup.BTN_JUMP_NEXT" />
+                <action android:name="net.chilon.matt.teacup.TeaCup.BTN_JUMP_PREV" />
+                <action android:name="net.chilon.matt.teacup.TeaCup.BTN_PLAY_PAUSE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                       android:resource="@xml/teacup_info" />
+        </receiver>
+        
+        <activity android:name="TeaCupConfiguration"
+                  android:label="@string/app_name" 
+                  android:windowSoftInputMode="stateUnchanged">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
                 <category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity>
-		
-       	<service android:name="TeaCupService">
-       	    <intent-filter >
-       	        <action android:name="net.chilon.matt.teacupservice.TEACUP_SERVICE" />
-       	        <action android:name="android.intent.action.BOOT_COMPLETED"/>    
-       	    </intent-filter>
-       	</service>
-    	
+            </intent-filter>
+        </activity>
+        
+           <service android:name="TeaCupService">
+               <intent-filter >
+                   <action android:name="net.chilon.matt.teacupservice.TEACUP_SERVICE" />
+                   <action android:name="android.intent.action.BOOT_COMPLETED"/>    
+               </intent-filter>
+           </service>
+        
     </application>
     
 

@@ -1,39 +1,39 @@
 package net.chilon.matt.teacup;
 
 public class PlayerConfig {
-	private int playerId;
-	private String name;
+    private int playerId;
+    private String name;
     private String playerPackage;
-	private String metaChangedAction;
-	private String metaChangedId;
-	private String playstateChangedAction;
-	private String playstateChangedPlaying;
-	private String jumpPreviousAction;
-	private String jumpPreviousCommandField;
-	private String jumpPreviousCommand;
-	private String playPauseAction;
-	private String playPauseCommandField;
-	private String playPauseCommand;
-	private String jumpNextAction;
-	private String jumpNextCommandField;
-	private String jumpNextCommand;
+    private String metaChangedAction;
+    private String metaChangedId;
+    private String playstateChangedAction;
+    private String playstateChangedPlaying;
+    private String jumpPreviousAction;
+    private String jumpPreviousCommandField;
+    private String jumpPreviousCommand;
+    private String playPauseAction;
+    private String playPauseCommandField;
+    private String playPauseCommand;
+    private String jumpNextAction;
+    private String jumpNextCommandField;
+    private String jumpNextCommand;
  
-	PlayerConfig(int playerId,
-			     String name,
+    PlayerConfig(int playerId,
+                 String name,
                  String playerPackage,
-		         String metaChangedAction,
-		         String metaChangedId,
-		         String playstateChangedAction,
-		         String playstateChangedPlaying,
-		         String jumpPreviousAction,
-		         String jumpPreviousCommandField,
-		         String jumpPreviousCommand,
-		         String playPauseAction,
-		         String playPauseCommandField,
-		         String playPauseCommand,
-		         String jumpNextAction,
-		         String jumpNextCommandField,
-		         String jumpNextCommand) {
+                 String metaChangedAction,
+                 String metaChangedId,
+                 String playstateChangedAction,
+                 String playstateChangedPlaying,
+                 String jumpPreviousAction,
+                 String jumpPreviousCommandField,
+                 String jumpPreviousCommand,
+                 String playPauseAction,
+                 String playPauseCommandField,
+                 String playPauseCommand,
+                 String jumpNextAction,
+                 String jumpNextCommandField,
+                 String jumpNextCommand) {
         this.playerId = playerId;
         this.name = name;
         this.playerPackage = playerPackage;
@@ -50,26 +50,26 @@ public class PlayerConfig {
         this.jumpNextAction = jumpNextAction;
         this.jumpNextCommandField = jumpNextCommandField;
         this.jumpNextCommand = jumpNextCommand;
-	}
+    }
 
-	PlayerConfig(PlayerConfig copy) {
+    PlayerConfig(PlayerConfig copy) {
         playerId = copy.playerId;
         name = copy.name;
-		playerPackage = copy.playerPackage;
-		metaChangedAction = copy.metaChangedAction;
-		metaChangedId = copy.metaChangedId;
-		playstateChangedAction = copy.playstateChangedAction;
-		playstateChangedPlaying = copy.playstateChangedPlaying;
-		jumpPreviousAction = copy.jumpPreviousAction;
-		jumpPreviousCommandField = copy.jumpPreviousCommandField;
-		jumpPreviousCommand = copy.jumpPreviousCommand;
-		playPauseAction = copy.playPauseAction;
-		playPauseCommandField = copy.playPauseCommandField;
-		playPauseCommand = copy.playPauseCommand;
-		jumpNextAction = copy.jumpNextAction;
-		jumpNextCommandField = copy.jumpNextCommandField;
-		jumpNextCommand = copy.jumpNextCommand;
-	}
+        playerPackage = copy.playerPackage;
+        metaChangedAction = copy.metaChangedAction;
+        metaChangedId = copy.metaChangedId;
+        playstateChangedAction = copy.playstateChangedAction;
+        playstateChangedPlaying = copy.playstateChangedPlaying;
+        jumpPreviousAction = copy.jumpPreviousAction;
+        jumpPreviousCommandField = copy.jumpPreviousCommandField;
+        jumpPreviousCommand = copy.jumpPreviousCommand;
+        playPauseAction = copy.playPauseAction;
+        playPauseCommandField = copy.playPauseCommandField;
+        playPauseCommand = copy.playPauseCommand;
+        jumpNextAction = copy.jumpNextAction;
+        jumpNextCommandField = copy.jumpNextCommandField;
+        jumpNextCommand = copy.jumpNextCommand;
+    }
 
     public int getPlayerId() { return playerId; }
     public String getName() { return name; }
@@ -91,7 +91,7 @@ public class PlayerConfig {
     public String toString() {
         return "(" +
                playerId + ", " +
-        	   name + ", " +
+               name + ", " +
                playerPackage + ", " +
                metaChangedAction + ", " +
                metaChangedId + ", " +

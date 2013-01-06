@@ -1,7 +1,7 @@
 <resources>
 
     <string name="app_name">TeaCup</string>
-    <string name="notrack">It\'s oh so quiet.</string>
+    <string name="notitle">It\'s oh so quiet.</string>
     <string name="albumArtDesc">Album Art.</string>
     <string name="playPauseDesc">Play/Pause.</string>
     <string name="noartist">Shh!</string>
@@ -28,25 +28,25 @@
     
     <string name="jumpPreviousAction">Jump previous action</string>
     <string name="jumpPreviousActionHint">The action to broadcast to jump to the previous track.</string>
-	<string name="jumpPreviousCommandField">Jump previous command field label</string>
-	<string name="jumpPreviousCommandFieldHint">The field label of the jump previous command.</string>
-	<string name="jumpPreviousCommand">Jump previous command</string>
-	<string name="jumpPreviousCommandHint">The command value for jump previous.</string>
+    <string name="jumpPreviousCommandField">Jump previous command field label</string>
+    <string name="jumpPreviousCommandFieldHint">The field label of the jump previous command.</string>
+    <string name="jumpPreviousCommand">Jump previous command</string>
+    <string name="jumpPreviousCommandHint">The command value for jump previous.</string>
 
-	<string name="playPauseAction">Play/pause action</string>
+    <string name="playPauseAction">Play/pause action</string>
     <string name="playPauseActionHint">The action to broadcast to toggle play/pause.</string>
-	<string name="playPauseCommandField">Play/pause command field label</string>
-	<string name="playPauseCommandFieldHint">The field label of the play/pause command.</string>
-	<string name="playPauseCommand">Play/pause command</string>
-	<string name="playPauseCommandHint">The command value for play/pause.</string>
+    <string name="playPauseCommandField">Play/pause command field label</string>
+    <string name="playPauseCommandFieldHint">The field label of the play/pause command.</string>
+    <string name="playPauseCommand">Play/pause command</string>
+    <string name="playPauseCommandHint">The command value for play/pause.</string>
 
     <string name="jumpNextAction">Jump next action</string>
     <string name="jumpNextActionHint">The action to broadcast to jump to the next track.</string>
-	<string name="jumpNextCommandField">Jump next command field label</string>
-	<string name="jumpNextCommandFieldHint">The field label of the jump next command.</string>
-	<string name="jumpNextCommand">Jump next command</string>
-	<string name="jumpNextCommandHint">The command value for jump next.</string>
-	<string name="customPlayerName">Custom Player</string>
-	<string name="androidPlayerName">Android Player</string>
-		
+    <string name="jumpNextCommandField">Jump next command field label</string>
+    <string name="jumpNextCommandFieldHint">The field label of the jump next command.</string>
+    <string name="jumpNextCommand">Jump next command</string>
+    <string name="jumpNextCommandHint">The command value for jump next.</string>
+    <string name="customPlayerName">Custom Player</string>
+    <string name="androidPlayerName">Android Player</string>
+        
 </resources>
