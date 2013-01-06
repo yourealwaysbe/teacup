@@ -46,5 +46,7 @@
 	<string name="jumpNextCommandFieldHint">The field label of the jump next command.</string>
 	<string name="jumpNextCommand">Jump next command</string>
 	<string name="jumpNextCommandHint">The command value for jump next.</string>
+	<string name="customPlayerName">Custom Player</string>
+	<string name="androidPlayerName">Android Player</string>
 		
 </resources>

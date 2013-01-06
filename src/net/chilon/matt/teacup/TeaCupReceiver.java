@@ -9,17 +9,13 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 import android.provider.MediaStore;
 import android.support.v4.content.CursorLoader;
-import android.view.LayoutInflater;
 import android.widget.RemoteViews;
-import android.widget.TextView;
-import android.view.View;
 
 
 public class TeaCupReceiver extends BroadcastReceiver {

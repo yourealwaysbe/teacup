@@ -2,20 +2,13 @@ package net.chilon.matt.teacup;
 
 import net.chilon.matt.teacup.R;
 import android.app.Activity;
-import android.app.PendingIntent;
-import android.app.PendingIntent.CanceledException;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -38,6 +31,8 @@ public class TeaCupConfiguration extends Activity {
 		
 		Config config = new Config((Context)this);
 		config.writeConfigToActivity(this);
+		
+		showHideCustomOptions(config.getPlayer().getPlayerId());
 		
 		Button ok = (Button) findViewById(R.id.okbutton);
 		ok.setOnClickListener(new OnClickListener() {
@@ -87,12 +82,7 @@ public class TeaCupConfiguration extends Activity {
 		TextView playerSelected = (TextView) findViewById(R.id.playerSelected);
 		playerSelected.setText(checkedButton.getText());
 		
-		LinearLayout customPlayerOptions = (LinearLayout) findViewById(R.id.customPlayerOptions);
-		if (checkedId == R.id.customPlayer) {
-			customPlayerOptions.setVisibility(View.VISIBLE);
-		} else {
-			customPlayerOptions.setVisibility(View.GONE);
-		}
+		showHideCustomOptions(checkedId);
 	}
 	
 
@@ -102,5 +92,15 @@ public class TeaCupConfiguration extends Activity {
 	    context.stopService(i);
 	    context.startService(i);	
     }
+    
+    private void showHideCustomOptions(int selectedId) {
+		View customPlayerOptions = (View) findViewById(R.id.customPlayerOptions);
+		if (selectedId == R.id.customPlayer) {
+			customPlayerOptions.setVisibility(View.VISIBLE);
+		} else {
+			customPlayerOptions.setVisibility(View.GONE);
+		}    
+    }
+    
 	
 }

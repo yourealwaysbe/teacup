@@ -15,10 +15,10 @@ public class TeaCupService extends Service {
 	public void onStart(Intent intent, int startId) {
 		Config config = new Config(getApplicationContext());
 		IntentFilter filter = new IntentFilter();
-		filter.addAction(config.metaChangedAction());
+		filter.addAction(config.getPlayer().getMetaChangedAction());
 		registerReceiver(receiver, filter);
 		
-		System.out.println("Registered with filter " + config.metaChangedAction());
+		System.out.println("Registered with filter... UPDATE ME");
 	}
 	
 	public void onDestroy() {

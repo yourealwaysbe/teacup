@@ -38,7 +38,9 @@
         android:id="@+id/playerSelectedLine"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/getDirectoryArt" >
+        android:layout_below="@+id/getDirectoryArt"
+        android:clickable="true"
+        android:onClick="onClickSelectPlayer" >
 
         <LinearLayout
             android:id="@+id/playerSelectDescView"
@@ -60,14 +62,13 @@
                 android:textAppearance="?android:attr/textAppearanceMedium" />
         </LinearLayout>
         
-	    <ImageButton
-	        android:id="@+id/choosePlayerButton"
+	    <ImageView
+	        android:id="@+id/selectPlayerImage"
 	        android:layout_width="wrap_content"
 	        android:layout_height="match_parent"
 	        android:layout_gravity="center_vertical"
 	        android:background="@android:color/transparent"
 	        android:contentDescription="@string/selectPlayerDesc"
-	        android:onClick="onClickSelectPlayer"
 	        android:scaleType="fitCenter"
 	        android:src="@drawable/ic_next_arrow" />
 
@@ -89,13 +90,6 @@
             android:text="Android Player" 
             android:onClick="onClickPlayerSelectRadioGroup" />
 
-        <RadioButton
-            android:id="@+id/samsungPlayer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Samsung Player" 
-            android:onClick="onClickPlayerSelectRadioGroup" />
-        
        <RadioButton
             android:id="@+id/customPlayer"
             android:layout_width="match_parent"
@@ -104,13 +98,15 @@
             android:onClick="onClickPlayerSelectRadioGroup" />
     </RadioGroup>
 
+
     <LinearLayout
         android:id="@+id/customPlayerOptions"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" 
         android:visibility="gone"
         android:layout_below="@id/selectPlayerRadioGroup"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingTop="20dp">
 
         <TextView
         	android:id="@+id/playerLaunchActionText"
@@ -339,7 +335,6 @@
     		
 
 	</LinearLayout>
-    
     
     <LinearLayout
         android:id="@+id/buttonsLayout"

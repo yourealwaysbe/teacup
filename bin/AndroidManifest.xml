@@ -27,7 +27,8 @@
 		</receiver>
 		
 		<activity android:name="TeaCupConfiguration"
-		          android:label="@string/app_name" >
+		          android:label="@string/app_name" 
+		          android:windowSoftInputMode="stateUnchanged">
 			<intent-filter>
 				<action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
                 <category android:name="android.intent.category.LAUNCHER" />
