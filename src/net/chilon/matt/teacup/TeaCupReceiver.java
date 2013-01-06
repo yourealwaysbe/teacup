@@ -36,7 +36,8 @@ public class TeaCupReceiver extends BroadcastReceiver {
         String action = intent.getAction();
         if (player.getMetaChangedAction().equals(action)) {
             updateMeta(config, context, intent);
-        } else if (player.getPlaystateChangedAction().equals(action)) {
+        }
+        if (player.getPlaystateChangedAction().equals(action)) {
             updatePlaystate(config, context, intent);
         }
     }
