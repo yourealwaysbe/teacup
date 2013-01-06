@@ -3,7 +3,7 @@ package net.chilon.matt.teacup;
 public class PlayerConfig {
 	private int playerId;
 	private String name;
-    private String playerLaunchAction;
+    private String playerPackage;
 	private String metaChangedAction;
 	private String metaChangedId;
 	private String playstateChangedAction;
@@ -20,7 +20,7 @@ public class PlayerConfig {
  
 	PlayerConfig(int playerId,
 			     String name,
-                 String playerLaunchAction,
+                 String playerPackage,
 		         String metaChangedAction,
 		         String metaChangedId,
 		         String playstateChangedAction,
@@ -36,7 +36,7 @@ public class PlayerConfig {
 		         String jumpNextCommand) {
         this.playerId = playerId;
         this.name = name;
-        this.playerLaunchAction = playerLaunchAction;
+        this.playerPackage = playerPackage;
         this.metaChangedAction = metaChangedAction;
         this.metaChangedId = metaChangedId;
         this.playstateChangedAction = playstateChangedAction;
@@ -55,7 +55,7 @@ public class PlayerConfig {
 	PlayerConfig(PlayerConfig copy) {
         playerId = copy.playerId;
         name = copy.name;
-		playerLaunchAction = copy.playerLaunchAction;
+		playerPackage = copy.playerPackage;
 		metaChangedAction = copy.metaChangedAction;
 		metaChangedId = copy.metaChangedId;
 		playstateChangedAction = copy.playstateChangedAction;
@@ -73,7 +73,7 @@ public class PlayerConfig {
 
     public int getPlayerId() { return playerId; }
     public String getName() { return name; }
-    public String getPlayerLaunchAction() { return playerLaunchAction; }
+    public String getPlayerPackage() { return playerPackage; }
     public String getMetaChangedAction() { return metaChangedAction; }
     public String getMetaChangedId() { return metaChangedId; }
     public String getPlaystateChangedAction() { return playstateChangedAction; }
@@ -92,7 +92,7 @@ public class PlayerConfig {
         return "(" +
                playerId + ", " +
         	   name + ", " +
-               playerLaunchAction + ", " +
+               playerPackage + ", " +
                metaChangedAction + ", " +
                metaChangedId + ", " +
                playstateChangedAction + ", " +

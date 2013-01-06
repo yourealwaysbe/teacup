@@ -109,20 +109,20 @@
         android:paddingTop="20dp">
 
         <TextView
-        	android:id="@+id/playerLaunchActionText"
+        	android:id="@+id/playerPackageText"
         	android:layout_width="match_parent"
         	android:layout_height="wrap_content"
-        	android:text="@string/playerLaunchAction"
+        	android:text="@string/playerPackage"
         	android:textAppearance="?android:attr/textAppearanceMedium" />
 
     	<EditText
-        	android:id="@+id/playerLaunchAction"
+        	android:id="@+id/playerPackage"
         	android:layout_width="match_parent"
         	android:layout_height="wrap_content"
         	android:ems="10"
         	android:maxLines="1"
         	android:inputType="textUri"
-        	android:hint="@string/playerLaunchActionHint" />
+        	android:hint="@string/playerPackageHint" />
         
     	<TextView
         	android:id="@+id/metaChangedActionText"

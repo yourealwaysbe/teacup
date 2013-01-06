@@ -20,65 +20,79 @@ import android.widget.RemoteViews;
 
 public class TeaCupReceiver extends BroadcastReceiver {
 	
-	private static final String INTENT_TRACK_ID = "id";
-	private static final String INTENT_ARTIST = "artist";
-	private static final String INTENT_TRACK = "track";
-	private static final String INTENT_PLAYING = "playing";
+	private class MetaData {
+		String artist;
+		String track;
+		String filename;
+	}
 	
 	private static final int ART_WIDTH = 72;
 	private static final int ART_HEIGHT = 72;
 	
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		String artist = getArtist(context, intent);
-		String track = getTrack(context, intent);
-	    Bitmap artBmp = getArtBmp(context, intent);
-	    Bitmap playButton = getPlayButton(context, intent);
-	    
-	    updateWidget(context, artist, track, playButton, artBmp);
+		Config config = new Config(context);
+		PlayerConfig player = config.getPlayer();
+		String action = intent.getAction();
+		if (player.getMetaChangedAction().equals(action)) {
+			updateMeta(config, context, intent);
+		} else if (player.getPlaystateChangedAction().equals(action)) {
+			updatePlaystate(config, context, intent);
+		}
 	}
 	
-	private Bitmap getPlayButton(Context context, Intent intent) {
-		boolean playing = intent.getBooleanExtra(INTENT_PLAYING, false);
+	private void updateMeta(Config config,
+			                Context context,
+			                Intent intent) {
+		MetaData meta = getMeta(config, context, intent);
+		
+		String artist;
+		String track;
+		Bitmap artBmp;
+		
+		if (meta != null) {
+			artBmp = getArtBmp(meta.filename, config, context);
+			artist = meta.artist;
+			track = meta.track;
+		} else {
+			artist = context.getResources().getString(R.string.noartist);
+			track = context.getResources().getString(R.string.notrack);
+			artBmp = getDefaultArt(context);
+		}
+		
+		updateWidget(context, artist, track, artBmp);
+	}
+	
+	private void updatePlaystate(Config config,
+			                     Context context,
+			                     Intent intent) {
+		Bitmap playButton = getPlayButton(config, context, intent);
+		updateWidget(context, playButton);
+	}
+	
+	private Bitmap getPlayButton(Config config, 
+			                     Context context, 
+			                     Intent intent) {
+		String playingField = config.getPlayer().getPlaystateChangedPlaying();
+		boolean playing = intent.getBooleanExtra(playingField, false);
 		int imgId = playing ? R.drawable.ic_pause : R.drawable.ic_play;
 		return BitmapFactory.decodeResource(context.getResources(), 
                                             imgId);
 	}
-	
-	private String getArtist(Context context, Intent intent) {
-		String artist = intent.getStringExtra(INTENT_ARTIST);
-		if (artist == null) {
-			artist = context.getResources().getString(R.string.noartist);
-		}
-		return artist;
-	}
-
-	private String getTrack(Context context, Intent intent) {
-		String track = intent.getStringExtra(INTENT_TRACK);
-		if (track == null) {
-			track = context.getResources().getString(R.string.notrack);
-		}
-		return track;
-	}
-	
-	private Bitmap getArtBmp(Context context, Intent intent) {
-		Bitmap artBmp = null;
-			
-        Config config = new Config(context);
 		
+	private Bitmap getArtBmp(String filename,
+			                 Config config,
+			                 Context context) {
+		Bitmap artBmp = null;	
+        
 		boolean getEmbeddedArt = config.getEmbeddedArt();
 		boolean getDirectoryArt = config.getDirectoryArt();
 		
-		if (getEmbeddedArt || getDirectoryArt) {
-			String playingFilename = getPlayingFilename(context, intent);	
-			if (playingFilename != null) {
-				if (getEmbeddedArt)
-					artBmp = getFileEmbeddedArt(playingFilename);
-				if (artBmp == null && getDirectoryArt) 
-					artBmp = getImageFromDirectory(playingFilename);
-	    	}
-	    }
-	    	
+		if (getEmbeddedArt)
+			artBmp = getFileEmbeddedArt(filename);
+		if (artBmp == null && getDirectoryArt) 
+			artBmp = getImageFromDirectory(filename);
+	    
 	    if (artBmp == null) {
 	    	artBmp = getDefaultArt(context);
 	    }
@@ -135,16 +149,22 @@ public class TeaCupReceiver extends BroadcastReceiver {
 		return artBmp;
 	}
 	
-	private String getPlayingFilename(Context context, Intent intent) {
-	    long id = intent.getLongExtra(INTENT_TRACK_ID, -1);
+	private MetaData getMeta(Config config, 
+			                 Context context, 
+			                 Intent intent) {
+		PlayerConfig player = config.getPlayer();
+		
+	    long id = intent.getLongExtra(player.getMetaChangedId(), -1);
     	
-	    String filename = null;
+	    MetaData meta = null;
 	    
 	    if (id  >= 0) {
 	    	String selectionArgs[] = {
 	    		Long.toString(id)
 	    	};
 	    	String projection[] = {
+	    		MediaStore.Audio.Media.ARTIST,
+	    		MediaStore.Audio.Media.TRACK,
 	    		MediaStore.Audio.Media.DATA
 	    	};
 	    	String selection = MediaStore.Audio.Media._ID + " = ?";
@@ -157,17 +177,19 @@ public class TeaCupReceiver extends BroadcastReceiver {
 	    	Cursor result = q.loadInBackground();
 	    	if (result.getCount() > 0) {
 	    		result.moveToFirst();
-	    		filename = result.getString(0);	
+	    		meta = new MetaData();
+	    		meta.artist = result.getString(0);
+	    		meta.track = result.getString(1);
+	    		meta.filename = result.getString(2);	
 	    	}
 	    }
 	    
-	    return filename;
+	    return meta;
 	}
 	
 	private void updateWidget(Context context,
 			                  String artist, 
 			                  String track,
-			                  Bitmap playButton,
 			                  Bitmap artBmp) {
 	    Context appContext = context.getApplicationContext();
 	    AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(appContext);
@@ -177,10 +199,22 @@ public class TeaCupReceiver extends BroadcastReceiver {
 	    views.setTextViewText(R.id.artistView, artist);
 	    views.setTextViewText(R.id.trackView,  track);
 	    views.setImageViewBitmap(R.id.albumArtButton, artBmp);
-	    views.setImageViewBitmap(R.id.playPauseButton, playButton);
 	    
 	    ComponentName thisWidget = new ComponentName(context, TeaCup.class);
 	    appWidgetManager.updateAppWidget(thisWidget, views);
+	}
+	
+	private void updateWidget(Context context,
+                              Bitmap playButton) {
+		Context appContext = context.getApplicationContext();
+		AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(appContext);
+		RemoteViews views = new RemoteViews(appContext.getPackageName(), 
+                                            R.layout.teacup);
+		
+		views.setImageViewBitmap(R.id.playPauseButton, playButton);
+
+		ComponentName thisWidget = new ComponentName(context, TeaCup.class);
+		appWidgetManager.updateAppWidget(thisWidget, views);
 	}
 	
 	// code below from android tutorial:

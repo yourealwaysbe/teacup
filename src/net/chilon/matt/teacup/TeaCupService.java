@@ -16,6 +16,7 @@ public class TeaCupService extends Service {
 		Config config = new Config(getApplicationContext());
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(config.getPlayer().getMetaChangedAction());
+		filter.addAction(config.getPlayer().getPlaystateChangedAction());
 		registerReceiver(receiver, filter);
 		
 		System.out.println("Registered with filter... UPDATE ME");

@@ -19,8 +19,8 @@
     <string name="metaChangedActionHint">The action broadcast by your music player when the track metadata changes.</string>
     <string name="metaChangedIdHint">The id field of the playing track in the broadcast intent action.</string>
     
-    <string name="playerLaunchAction">Launch Action</string>
-    <string name="playerLaunchActionHint">The action that launches the music player.</string>
+    <string name="playerPackage">Launch Action</string>
+    <string name="playerPackageHint">The action that launches the music player.</string>
     <string name="playstateChangedAction">Playstate changed action</string>
     <string name="playstateChangedActionHint">The action broadcast when toggling between play and pause.</string>
     <string name="playstateChangedPlaying">Playstate changed \'playing\' field</string>

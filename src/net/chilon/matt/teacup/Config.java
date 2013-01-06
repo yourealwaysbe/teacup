@@ -23,7 +23,7 @@ public class Config {
 	private static final String GET_EMBEDDED_ART = "getEmbeddedArt";
 	private static final String GET_DIRECTORY_ART = "getDirectoryArt";
 	private static final String SELECTED_PLAYER_ID = "selectedPlayerId";
-	private static final String PLAYER_LAUNCH_ACTION = "playerLaunchAction";
+	private static final String PLAYER_LAUNCH_ACTION = "playerPackage";
 	private static final String META_CHANGED_ACTION = "metaChangedAction";
 	private static final String META_CHANGED_ID = "metaChangedId";
 	private static final String PLAYSTATE_CHANGED_ACTION = "playstateChangedAction";
@@ -99,7 +99,7 @@ public class Config {
         customPlayer = 
             new PlayerConfig(R.id.customPlayer,
         		             CUSTOM_PLAYER_NAME,
-                             getEditValue(activity, R.id.playerLaunchAction),
+                             getEditValue(activity, R.id.playerPackage),
                              getEditValue(activity, R.id.metaChangedAction),
                              getEditValue(activity, R.id.metaChangedId),
                              getEditValue(activity, R.id.playstateChangedAction),
@@ -164,7 +164,7 @@ public class Config {
 		edit.putBoolean(GET_EMBEDDED_ART, getEmbeddedArt);
 		edit.putBoolean(GET_DIRECTORY_ART, getDirectoryArt);
         edit.putInt(SELECTED_PLAYER_ID, selectedPlayerId);
-        edit.putString(PLAYER_LAUNCH_ACTION, customPlayer.getPlayerLaunchAction());
+        edit.putString(PLAYER_LAUNCH_ACTION, customPlayer.getPlayerPackage());
         edit.putString(META_CHANGED_ACTION, customPlayer.getMetaChangedAction());
         edit.putString(META_CHANGED_ID, customPlayer.getMetaChangedId());
         edit.putString(PLAYSTATE_CHANGED_ACTION, customPlayer.getPlaystateChangedAction());
@@ -190,7 +190,7 @@ public class Config {
         setCheckedValue(activity, R.id.getDirectoryArt, getDirectoryArt);
         setRadioGroupId(activity, selectedPlayerId);
         setTextValue(activity, R.id.playerSelected, getPlayer(selectedPlayerId).getName());
-        setEditValue(activity, R.id.playerLaunchAction, customPlayer.getPlayerLaunchAction());
+        setEditValue(activity, R.id.playerPackage, customPlayer.getPlayerPackage());
         setEditValue(activity, R.id.metaChangedAction, customPlayer.getMetaChangedAction());
         setEditValue(activity, R.id.metaChangedId, customPlayer.getMetaChangedId());
         setEditValue(activity, R.id.playstateChangedAction, customPlayer.getPlaystateChangedAction());

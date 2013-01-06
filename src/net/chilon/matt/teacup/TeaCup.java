@@ -16,13 +16,6 @@ public class TeaCup extends AppWidgetProvider {
 	public static final String BTN_JUMP_PREV = "jump-prev";
 	public static final String BTN_PLAY_PAUSE = "play-pause";
 	
-	private static final String MUSIC_PLAYER = "com.android.music";
-	private static final String MUSIC_SERVICE_CMD = "com.android.music.musicservicecommand";
-	private static final String INTENT_COMMAND = "command";
-	private static final String CMD_PLAY_PAUSE = "togglepause";
-	private static final String CMD_JUMP_PREV = "previous";
-	private static final String CMD_JUMP_NEXT = "next";
-	
     @Override
     public void onDeleted(Context context, int[] appWidgetIds) {
         super.onDeleted(context, appWidgetIds);
@@ -77,7 +70,7 @@ public class TeaCup extends AppWidgetProvider {
     	PendingIntent playPause = makePendingIntent(context, BTN_PLAY_PAUSE);
     	PendingIntent jumpNext = makePendingIntent(context, BTN_JUMP_NEXT);
     	PendingIntent jumpPrev = makePendingIntent(context, BTN_JUMP_PREV);
-    	PendingIntent launchPlayer = makeLaunchPendingIntent(context);
+    	PendingIntent launchPlayer = makeLaunchPendingIntent(context, config);
     	
     	remoteViews.setOnClickPendingIntent(R.id.playPauseButton, playPause);
     	remoteViews.setOnClickPendingIntent(R.id.jumpNextButton, jumpNext);
@@ -93,38 +86,68 @@ public class TeaCup extends AppWidgetProvider {
     	return PendingIntent.getBroadcast(context, 0, i, 0);
     }
     
-    private PendingIntent makeLaunchPendingIntent(Context context) {
-    	Intent li = context.getPackageManager().getLaunchIntentForPackage(MUSIC_PLAYER);
+    private PendingIntent makeLaunchPendingIntent(Context context, Config config) {
+    	String musicPackage = config.getPlayer().getPlayerPackage();
+    	Intent li = context.getPackageManager().getLaunchIntentForPackage(musicPackage);
     	return PendingIntent.getActivity(context, 0, li, 0);
     }
     
     private void onClickJumpNext(Context context, Intent intent) {
-    	updatePlayer(context, CMD_JUMP_NEXT);
-    }
-    
-    private void onClickJumpPrev(Context context, Intent intent) {
-    	updatePlayer(context, CMD_JUMP_PREV);
-    }
-    
-    private void onClickPlayPause(Context context, Intent intent) {
-    	updatePlayer(context, CMD_PLAY_PAUSE);
-    }
-        
-    private void updatePlayer(Context context, String command) {
-    	if (isMusicRunning(context)) {
-    		Intent i = new Intent(MUSIC_SERVICE_CMD);
-    		i.putExtra(INTENT_COMMAND, command);
-    		context.sendBroadcast(i);
+		PlayerConfig player = new Config(context).getPlayer();
+    	if (!isMusicRunning(context, player)) {
+    		startMusic(context, player);
     	} else {
-    	   	Intent li = context.getPackageManager().getLaunchIntentForPackage(MUSIC_PLAYER);
-    	   	context.startActivity(li);
+    		sendCommand(context,
+    				    player.getJumpNextAction(),
+    				    player.getJumpNextCommandField(),
+    				    player.getJumpNextCommand());
     	}
     }
     
-    private boolean isMusicRunning(Context context) {
+    private void onClickJumpPrev(Context context, Intent intent) {
+		PlayerConfig player = new Config(context).getPlayer();
+    	if (!isMusicRunning(context, player)) {
+    		startMusic(context, player);
+    	} else {
+    		sendCommand(context,
+    				    player.getJumpPreviousAction(),
+    				    player.getJumpPreviousCommandField(),
+    				    player.getJumpPreviousCommand());
+    	}
+    }
+    
+    private void onClickPlayPause(Context context, Intent intent) {
+		PlayerConfig player = new Config(context).getPlayer();
+    	if (!isMusicRunning(context, player)) {
+    		startMusic(context, player);
+    	} else {
+    		sendCommand(context,
+    				    player.getPlayPauseAction(),
+    				    player.getPlayPauseCommandField(),
+    				    player.getPlayPauseCommand());
+    	}
+    }
+    
+    private void sendCommand(Context context, 
+    		                 String action, 
+    		                 String field, 
+    		                 String cmd) {
+		Intent i = new Intent(action);
+		i.putExtra(field, cmd);
+		context.sendBroadcast(i);
+    }
+        
+    private void startMusic(Context context, PlayerConfig player) {
+    	Intent li = context.getPackageManager().getLaunchIntentForPackage(player.getPlayerPackage());
+    	context.startActivity(li);
+    }
+    
+    
+    private boolean isMusicRunning(Context context, PlayerConfig player) {
         ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        String playerPackage = player.getPlayerPackage();
         for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (MUSIC_PLAYER.equals(service.service.getPackageName())) {
+            if (playerPackage.equals(service.service.getPackageName())) {
                 return true;
             }
         }
