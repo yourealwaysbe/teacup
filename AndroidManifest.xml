@@ -35,12 +35,17 @@
             </intent-filter>
         </activity>
         
-           <service android:name="TeaCupService">
-               <intent-filter >
-                   <action android:name="net.chilon.matt.teacupservice.TEACUP_SERVICE" />
-                   <action android:name="android.intent.action.BOOT_COMPLETED"/>    
-               </intent-filter>
-           </service>
+        <service android:name="TeaCupService">
+            <intent-filter >
+                <action android:name="net.chilon.matt.teacupservice.TEACUP_SERVICE" />
+            </intent-filter>
+        </service>
+
+        <receiver android:name="ServiceStarter">
+            <intent-filter >
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>    
+            </intent-filter>
+        </receiver>
         
     </application>
     

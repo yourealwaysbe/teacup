@@ -44,7 +44,7 @@ public class TeaCupConfiguration extends Activity {
                 Config config = new Config(self);
                 config.writeConfigToSharedPreferences(self);
 
-                restartService(getApplicationContext());
+                ServiceStarter.restartService(getApplicationContext());
                 
                 setResult(RESULT_OK, resultValue);
                 finish();
@@ -83,12 +83,7 @@ public class TeaCupConfiguration extends Activity {
     }
     
 
-    private void restartService(Context context) {
-        Intent i = new Intent(TeaCupService.TEACUP_SERVICE);
-        i.setClass(context, TeaCupService.class);
-        context.stopService(i);
-        context.startService(i);    
-    }
+
     
     private void showHideCustomOptions(int selectedId) {
         View customPlayerOptions = (View) findViewById(R.id.customPlayerOptions);
