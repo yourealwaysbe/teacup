@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android" 
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="294dp"
     android:minHeight="72dp"
     android:updatePeriodMillis="86400000"
-    android:configure="net.chilon.matt.teacup.TeaCupConfiguration" 
+    android:configure="net.chilon.matt.teacup.TeaCupConfiguration"
     android:initialLayout="@layout/teacup">
 
 </appwidget-provider>

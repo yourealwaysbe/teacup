@@ -17,7 +17,7 @@ public class PlayerConfig {
     private String jumpNextAction;
     private String jumpNextCommandField;
     private String jumpNextCommand;
- 
+
     PlayerConfig(int playerId,
                  String name,
                  String playerPackage,

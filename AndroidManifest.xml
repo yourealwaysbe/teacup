@@ -18,6 +18,7 @@
            <receiver android:name="TeaCup" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="net.chilon.matt.teacup.TeaCup.BTN_ALBUM_ART" />
                 <action android:name="net.chilon.matt.teacup.TeaCup.BTN_JUMP_NEXT" />
                 <action android:name="net.chilon.matt.teacup.TeaCup.BTN_JUMP_PREV" />
                 <action android:name="net.chilon.matt.teacup.TeaCup.BTN_PLAY_PAUSE" />
@@ -30,6 +31,7 @@
                   android:label="@string/app_name" 
                   android:windowSoftInputMode="stateUnchanged">
             <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>

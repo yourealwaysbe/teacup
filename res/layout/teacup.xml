@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal" 
+    android:orientation="horizontal"
     android:padding="15dp"
     android:background="@drawable/background"
     android:gravity="center_vertical">
@@ -33,7 +33,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textStyle="bold" 
+            android:textStyle="bold"
             android:textColor="#ffffff"
             android:gravity="center" />
 
@@ -48,7 +48,7 @@
             android:textColor="#ffffff"
             android:gravity="center" />
 
-        
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="20dp"
@@ -66,7 +66,7 @@
                 android:contentDescription="@string/jumpPrevDesc"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_jump_prev" />
-                   
+
             <ImageButton
                 android:id="@+id/playPauseButton"
                 android:layout_width="0dp"
@@ -77,8 +77,8 @@
                 android:contentDescription="@string/playPauseDesc"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_play" />
-            
-                
+
+
             <ImageButton
                 android:id="@+id/jumpNextButton"
                 android:layout_width="0dp"
@@ -89,10 +89,10 @@
                 android:contentDescription="@string/jumpNextDesc"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_jump_next"/>
-       
+
 
         </LinearLayout>
-        
+
     </LinearLayout>
-    
+
 </LinearLayout>

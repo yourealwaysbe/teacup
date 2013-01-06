@@ -9,19 +9,21 @@ import android.os.IBinder;
 public class TeaCupService extends Service {
 
     public final static String TEACUP_SERVICE = "TeaCupService";
-    
-    TeaCupReceiver receiver = new TeaCupReceiver();
-    
+
+    TeaCupReceiver receiver = null;
+
     public void onStart(Intent intent, int startId) {
         Config config = new Config(getApplicationContext());
         IntentFilter filter = new IntentFilter();
         filter.addAction(config.getPlayer().getMetaChangedAction());
         filter.addAction(config.getPlayer().getPlaystateChangedAction());
+        receiver = new TeaCupReceiver();
         registerReceiver(receiver, filter);
     }
-    
+
     public void onDestroy() {
-        unregisterReceiver(receiver);
+        if (receiver != null)
+            unregisterReceiver(receiver);
     }
 
     @Override
