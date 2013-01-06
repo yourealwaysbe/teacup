@@ -18,7 +18,7 @@ PERMISSIONS:
     (In simple cases, a service isn't needed for this functionality, but because
     TeaCup allows the user to configure which actions to listen for, a dynamic
     receiver is needed, and hence a service is needed to set it up and look
-    after it.)
+    after it. (It's callbacks, not polling, in case you were worried...))
 
 
 CONFIGURATION:
