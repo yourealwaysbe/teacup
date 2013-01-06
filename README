@@ -1,45 +1,90 @@
 
 A simple desktop music widget for Android primarily designed to be used with the
-stock player.  Shows embedded art (or else any image file in the same directory
-as the track file), play, prev, next buttons.  Press album art to open the music
+stock player but allows configuration for (hopefully) any player.  Shows
+embedded art or else any image file in the same directory as the track file
+(configurable), play, prev, next buttons.  Press album art to open the music
 player.
 
 Written and tested for Android 2.3.3 (Android 10) on a Samsung Galaxy Mini 2,
 but seems to compile and work in emulators for 4.2 (Android 17).
 
-Teacup Logo is free clipart:
-http://www.wpclipart.com/food/beverages/tea/teacup.png.html
 
-Hopefully all the files you need to compile are here...
+CONFIGURATION:
 
-... except a build system...
+    The configuration utility starts when adding a widget and can also be
+    accessed via an icon in the launcher menu.  Note, all instances of widgets
+    share a configuration.
 
-Linux-wise, you should be able to run
+    If you want to customise the player settings, press "choose player" then
+    select "custom player".  You'll get a long list of options.  
 
-    android update project --path . --target android-10
+    To launch the player, the package name is needed.  The default is
+    "com.android.music".  I think HTC use a different stock player, so you'll
+    need to find out the config options to use this with HTC... (on my todo
+    list).
 
-assuming you've set-up the android-sdk with android-10 (probably compiles for
-other targets).  (Run simply "android" to start setting up targets.)
+    To keep up-to-date with the player, TeaCup needs to know what to listen for.
+    You can specify the "metachanged" action, that is fired when the track changes,
+    and the "playstatechanged" action, that is fired when the player changes
+    between play and pause.  From the metachanged action, TeaCup needs to know
+    how to get the android media "id" of the song playing.  In the stock player,
+    this is the "id" field of the "com.android.music.metadatachanged" action.
+    Similarly, TeaCup needs to know how to tell whether the current song is
+    playing or paused.  This is the "playing" field of the
+    "com.android.music.playstatechanged" action.
 
-And that will generate build.xml and local.properties, then you should be able
-to do
+    Next, to control the player, TeaCup needs to know what requests to send to
+    the player and how.  E.g. to jump to the next track, it must send a
+    "com.android.music.musicservicecommand" action, with the field "command" set
+    to "next".  Hence, for the default player we set
 
-    ant debug
+        Jump next action: com.android.music.musicservicecommand
+        Jump next command field: command
+        Jump next command: next
 
-and an .apk will be built and put in bin/.
+    And similarly for play/pause and jump previous.
 
-I've included build.xml.generated and local.properties.generated which are the
-files generated on my machine.  Renames to build.xml and local.properties, maybe
-they'll work for you (if you edit local properties to tell it where the android
-sdk is installed).
 
-For more on building, see here
+ICONS:
 
-    https://developer.android.com/tools/building/building-cmdline.html
+    Teacup Logo is free clipart:
+    http://www.wpclipart.com/food/beverages/tea/teacup.png.html
 
-and here
+    Everything else i self-gimped.
 
-    http://www.androidengineer.com/2010/06/using-ant-to-automate-building-android.html
 
-Then, once it's built, copy the .apk to your phone, open it up and let it
-install.  (Or use adb or whatever you prefer.)
+BUILDING:
+
+    Hopefully all the files you need to compile are here...
+
+    ... except a build system...
+
+    Linux-wise, you should be able to run
+
+        android update project --path . --target android-10
+
+    assuming you've set-up the android-sdk with android-10 (probably compiles for
+    other targets).  (Run simply "android" to start setting up targets.)
+
+    And that will generate build.xml and local.properties, then you should be able
+    to do
+
+        ant debug
+
+    and an .apk will be built and put in bin/.
+
+    I've included build.xml.generated and local.properties.generated which are the
+    files generated on my machine.  Renames to build.xml and local.properties, maybe
+    they'll work for you (if you edit local properties to tell it where the android
+    sdk is installed).
+
+    For more on building, see here
+
+        https://developer.android.com/tools/building/building-cmdline.html
+
+    and here
+
+        http://www.androidengineer.com/2010/06/using-ant-to-automate-building-android.html
+
+    Then, once it's built, copy the .apk to your phone, open it up and let it
+    install.  (Or use adb or whatever you prefer.)
