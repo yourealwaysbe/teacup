@@ -10,6 +10,10 @@
     <string name="albumArtSelect">Album art sources</string>
     <string name="getEmbeddedArt">Embedded art</string>
     <string name="getDirectoryArt">Music file directory</string>
+    <string name="getLastFMArtWifi">Last FM (WiFi)</string>
+    <string name="getLastFMArtNetwork">Last FM (phone network)</string>
+    <string name="lastFMDirectoryHint">Cache directory for downloaded Last FM art.</string>
+    
     <string name="playerSelectDesc">Choose music player</string>
     <string name="playerSelected">Android Player</string>
     <string name="selectPlayerDesc">The music application for the widget.</string>

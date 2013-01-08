@@ -8,6 +8,7 @@ package net.chilon.matt.teacup;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Environment;
 import android.util.SparseArray;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -22,6 +23,9 @@ public class Config {
 
     private static final String GET_EMBEDDED_ART = "getEmbeddedArt";
     private static final String GET_DIRECTORY_ART = "getDirectoryArt";
+    private static final String GET_LASTFM_ART_WIFI = "getLastFMArtWifi";
+    private static final String GET_LASTFM_ART_NETWORK = "getLastFMArtNetwork";
+    private static final String LASTFM_DIRECTORY = "lastFMDirectory";
     private static final String SELECTED_PLAYER_ID = "selectedPlayerId";
     private static final String PLAYER_PACKAGE = "playerPackage";
     private static final String META_CHANGED_ACTION = "metaChangedAction";
@@ -38,9 +42,15 @@ public class Config {
     private static final String JUMP_NEXT_COMMAND_FIELD = "jumpNextCommandField";
     private static final String JUMP_NEXT_COMMAND = "jumpNextCommand";
 
+    private static int CUSTOM_PLAYER_ID = -1;
+    private static int DEFAULT_PLAYER_ID = 0;
+    
     private static final boolean DEFAULT_GET_EMBEDDED_ART = true;
     private static final boolean DEFAULT_GET_DIRECTORY_ART = true;
-    private static final int DEFAULT_SELECTED_PLAYER_ID = R.id.androidPlayer;
+    private static final boolean DEFAULT_GET_LASTFM_ART_WIFI = true;
+    private static final boolean DEFAULT_GET_LASTFM_ART_NETWORK = false;
+    private static final String DEFAULT_LASTFM_DIRECTORY = Environment.getExternalStorageDirectory().getPath() + ".teacup";
+    private static final int DEFAULT_SELECTED_PLAYER_ID = DEFAULT_PLAYER_ID;
     private static final String DEFAULT_PLAYER_NAME = ANDROID_PLAYER_NAME;
     private static final String DEFAULT_PLAYER_PACKAGE = "com.android.music";
     private static final String DEFAULT_META_CHANGED_ACTION = "com.android.music.metachanged";
@@ -60,7 +70,7 @@ public class Config {
     private static final SparseArray<PlayerConfig> defaultPlayers = initDefaultPlayers();
     private static SparseArray<PlayerConfig> initDefaultPlayers() {
         SparseArray<PlayerConfig> map = new SparseArray<PlayerConfig>();
-        map.put(R.id.androidPlayer,
+        map.put(DEFAULT_PLAYER_ID,
                 new PlayerConfig(DEFAULT_SELECTED_PLAYER_ID,
                                  DEFAULT_PLAYER_NAME,
                                  DEFAULT_PLAYER_PACKAGE,
@@ -83,6 +93,9 @@ public class Config {
 
     private boolean getEmbeddedArt = DEFAULT_GET_EMBEDDED_ART;
     private boolean getDirectoryArt = DEFAULT_GET_DIRECTORY_ART;
+    private boolean getLastFMArtWifi = DEFAULT_GET_LASTFM_ART_WIFI;
+    private boolean getLastFMArtNetwork = DEFAULT_GET_LASTFM_ART_NETWORK;
+    private String lastFMDirectory = DEFAULT_LASTFM_DIRECTORY;
     private PlayerConfig customPlayer = defaultPlayers.get(R.id.androidPlayer);
     private int selectedPlayerId = DEFAULT_SELECTED_PLAYER_ID;
 
@@ -94,6 +107,9 @@ public class Config {
     public Config(Activity activity) {
         this.getEmbeddedArt = getCheckedValue(activity, R.id.getEmbeddedArt);
         this.getDirectoryArt = getCheckedValue(activity, R.id.getDirectoryArt);
+        this.getLastFMArtWifi = getCheckedValue(activity, R.id.getLastFMArtWifi);
+        this.getLastFMArtNetwork = getCheckedValue(activity, R.id.getLastFMArtNetwork);
+        this.lastFMDirectory = getEditValue(activity, R.id.lastFMDirectory);
         selectedPlayerId = getRadioGroupId(activity, R.id.selectPlayerRadioGroup);
 
         customPlayer =
@@ -120,10 +136,13 @@ public class Config {
 
         getEmbeddedArt = prefs.getBoolean(GET_EMBEDDED_ART, DEFAULT_GET_EMBEDDED_ART);
         getDirectoryArt = prefs.getBoolean(GET_DIRECTORY_ART, DEFAULT_GET_DIRECTORY_ART);
+        getLastFMArtWifi = prefs.getBoolean(GET_LASTFM_ART_WIFI, DEFAULT_GET_LASTFM_ART_WIFI);
+        getLastFMArtNetwork = prefs.getBoolean(GET_LASTFM_ART_NETWORK, DEFAULT_GET_LASTFM_ART_NETWORK);
+        lastFMDirectory = prefs.getString(LASTFM_DIRECTORY, DEFAULT_LASTFM_DIRECTORY);
         selectedPlayerId = prefs.getInt(SELECTED_PLAYER_ID, DEFAULT_SELECTED_PLAYER_ID);
-
+        
         customPlayer
-            = new PlayerConfig(R.id.customPlayer,
+            = new PlayerConfig(CUSTOM_PLAYER_ID,
                                CUSTOM_PLAYER_NAME,
                                prefs.getString(PLAYER_PACKAGE, DEFAULT_PLAYER_PACKAGE),
                                prefs.getString(META_CHANGED_ACTION, DEFAULT_META_CHANGED_ACTION),
@@ -148,6 +167,18 @@ public class Config {
     public boolean getDirectoryArt() {
         return getDirectoryArt;
     }
+    
+    public boolean getLastFMArtWifi() {
+    	return getLastFMArtWifi;
+    }
+    
+    public boolean getLastFMArtNetwork() {
+    	return getLastFMArtNetwork;
+    }
+    
+    public String getLastFMDirectory() {
+    	return lastFMDirectory;
+    }
 
     public PlayerConfig getPlayer() {
         return getPlayer(selectedPlayerId);
@@ -159,6 +190,9 @@ public class Config {
 
         edit.putBoolean(GET_EMBEDDED_ART, getEmbeddedArt);
         edit.putBoolean(GET_DIRECTORY_ART, getDirectoryArt);
+        edit.putBoolean(GET_LASTFM_ART_WIFI, getLastFMArtWifi);
+        edit.putBoolean(GET_LASTFM_ART_NETWORK, getLastFMArtNetwork);
+        edit.putString(LASTFM_DIRECTORY,  lastFMDirectory);
         edit.putInt(SELECTED_PLAYER_ID, selectedPlayerId);
         edit.putString(PLAYER_PACKAGE, customPlayer.getPlayerPackage());
         edit.putString(META_CHANGED_ACTION, customPlayer.getMetaChangedAction());
@@ -182,6 +216,9 @@ public class Config {
     public void writeConfigToActivity(Activity activity) {
         setCheckedValue(activity, R.id.getEmbeddedArt, getEmbeddedArt);
         setCheckedValue(activity, R.id.getDirectoryArt, getDirectoryArt);
+        setCheckedValue(activity, R.id.getLastFMArtWifi, getLastFMArtWifi);
+        setCheckedValue(activity, R.id.getLastFMArtNetwork, getLastFMArtNetwork);
+        setEditValue(activity, R.id.lastFMDirectory, lastFMDirectory);
         setRadioGroupId(activity, selectedPlayerId);
         setTextValue(activity, R.id.playerSelected, getPlayer(selectedPlayerId).getName());
         setEditValue(activity, R.id.playerPackage, customPlayer.getPlayerPackage());
@@ -221,7 +258,19 @@ public class Config {
 
     private int getRadioGroupId(Activity activity, int groupId) {
         RadioGroup group = (RadioGroup) activity.findViewById(groupId);
-        return group.getCheckedRadioButtonId();
+        int buttonId = group.getCheckedRadioButtonId();
+        RadioButton button = (RadioButton) activity.findViewById(buttonId);
+        String playerName = button.getText().toString();
+        
+        if (playerName.equals(CUSTOM_PLAYER_NAME)) {
+        	return CUSTOM_PLAYER_ID;
+        } else {
+        	for (int i = 0; i < defaultPlayers.size(); ++i) {
+        		if (defaultPlayers.valueAt(i).equals(playerName)) 
+        			return defaultPlayers.keyAt(i);
+        	}
+        	return DEFAULT_PLAYER_ID;
+        }
     }
 
 
@@ -247,12 +296,26 @@ public class Config {
 
     private void setRadioGroupId(Activity activity,
                                  int valueId) {
-        RadioButton button = (RadioButton) activity.findViewById(valueId);
-        button.setChecked(true);
+    	String playerName;
+    	if (valueId == CUSTOM_PLAYER_ID)
+    		playerName = CUSTOM_PLAYER_NAME;
+    	else
+    		playerName = defaultPlayers.get(valueId).getName();
+    	
+    	RadioGroup players = (RadioGroup) activity.findViewById(R.id.selectPlayerRadioGroup);
+    	
+    	int n = players.getChildCount();
+    	for (int i = 0; i < n; ++i) {
+    		RadioButton button = (RadioButton) players.getChildAt(i);
+    		if (button.getText().equals(playerName)) {
+    			button.setChecked(true);
+    			break;
+    		}
+    	}
     }
 
     private PlayerConfig getPlayer(int id) {
-        if (id == R.id.customPlayer)
+        if (id == CUSTOM_PLAYER_ID)
             return customPlayer;
         else
             return defaultPlayers.get(id);

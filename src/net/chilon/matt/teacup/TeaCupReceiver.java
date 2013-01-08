@@ -23,12 +23,11 @@ public class TeaCupReceiver extends BroadcastReceiver {
 
     private class MetaData {
         String artist;
+        String album;
         String title;
         String filename;
     }
 
-    private static final int ART_WIDTH = 72;
-    private static final int ART_HEIGHT = 72;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -57,7 +56,7 @@ public class TeaCupReceiver extends BroadcastReceiver {
         Bitmap artBmp;
 
         if (meta != null) {
-            artBmp = getArtBmp(meta.filename, config, context);
+            artBmp = getArtBmp(meta, config, context);
             artist = meta.artist;
             title = meta.title;
         } else {
@@ -86,7 +85,7 @@ public class TeaCupReceiver extends BroadcastReceiver {
                                             imgId);
     }
 
-    private Bitmap getArtBmp(String filename,
+    private Bitmap getArtBmp(MetaData meta,
                              Config config,
                              Context context) {
         Bitmap artBmp = null;
@@ -95,9 +94,12 @@ public class TeaCupReceiver extends BroadcastReceiver {
         boolean getDirectoryArt = config.getDirectoryArt();
 
         if (getEmbeddedArt)
-            artBmp = getFileEmbeddedArt(filename);
+            artBmp = getFileEmbeddedArt(meta.filename);
         if (artBmp == null && getDirectoryArt)
-            artBmp = getImageFromDirectory(filename);
+            artBmp = getImageFromDirectory(meta.filename);
+        if (artBmp == null) {
+            artBmp = LastFM.getArt(context, config, meta.artist, meta.album);
+        }
 
         if (artBmp == null) {
             artBmp = getDefaultArt(context);
@@ -133,9 +135,7 @@ public class TeaCupReceiver extends BroadcastReceiver {
 
             File[] files = new File(directory).listFiles(imageFilter);
             for (int i = 0; i < files.length && artBmp == null; ++i) {
-                artBmp = decodeSampledBitmap(files[i],
-                                             ART_WIDTH,
-                                             ART_HEIGHT);
+                artBmp = AlbumArtFactory.readFile(files[i]);
             }
         }
         return artBmp;
@@ -154,9 +154,7 @@ public class TeaCupReceiver extends BroadcastReceiver {
         retriever.setDataSource(filename);
         byte[] artArray = retriever.getEmbeddedPicture();
         if (artArray != null) {
-            artBmp = decodeSampledBitmapFromBytes(artArray,
-                                                  ART_WIDTH,
-                                                  ART_HEIGHT);
+            artBmp = AlbumArtFactory.readBytes(artArray);
         }
 
         return artBmp;
@@ -177,6 +175,7 @@ public class TeaCupReceiver extends BroadcastReceiver {
             };
             String projection[] = {
                 MediaStore.Audio.Media.ARTIST,
+                MediaStore.Audio.Media.ALBUM,
                 MediaStore.Audio.Media.TITLE,
                 MediaStore.Audio.Media.DATA
             };
@@ -192,8 +191,9 @@ public class TeaCupReceiver extends BroadcastReceiver {
                 result.moveToFirst();
                 meta = new MetaData();
                 meta.artist = result.getString(0);
-                meta.title = result.getString(1);
-                meta.filename = result.getString(2);
+                meta.album = result.getString(1);
+                meta.title = result.getString(2);
+                meta.filename = result.getString(3);
             }
         }
 
@@ -230,52 +230,6 @@ public class TeaCupReceiver extends BroadcastReceiver {
         appWidgetManager.updateAppWidget(thisWidget, views);
     }
 
-    // code below from android tutorial:
-    // https://developer.android.com/training/displaying-bitmaps/load-bitmap.html
-
-    private static Bitmap decodeSampledBitmap(File file,
-                                              int reqWidth,
-                                              int reqHeight) {
-        String path = file.getPath();
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(path, options);
-
-        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
-        options.inJustDecodeBounds = false;
-        options.inPurgeable = true;
-        return BitmapFactory.decodeFile(path, options);
-    }
-
-    private static Bitmap decodeSampledBitmapFromBytes(byte[] data,
-                                                       int reqWidth,
-                                                       int reqHeight) {
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeByteArray(data, 0, data.length);
-        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
-        options.inJustDecodeBounds = false;
-        options.inPurgeable = true;
-        return BitmapFactory.decodeByteArray(data, 0, data.length);
-    }
-
-    private static int calculateInSampleSize(BitmapFactory.Options options,
-                                             int reqWidth,
-                                             int reqHeight) {
-        final int height = options.outHeight;
-        final int width = options.outWidth;
-        int inSampleSize = 1;
-
-        if (height > reqHeight || width > reqWidth) {
-            if (width > height) {
-                inSampleSize = Math.round((float)height / (float)reqHeight);
-            } else {
-                inSampleSize = Math.round((float)width / (float)reqWidth);
-            }
-        }
-
-        return inSampleSize;
-    }
 
 
 }

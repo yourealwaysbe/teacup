@@ -5,11 +5,11 @@ import android.app.Activity;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -70,7 +70,10 @@ public class TeaCupConfiguration extends Activity {
 
     public void onClickSelectPlayer(View view) {
         RadioGroup playerSelect = (RadioGroup) findViewById(R.id.selectPlayerRadioGroup);
-        playerSelect.setVisibility(View.VISIBLE);
+        if (playerSelect.getVisibility() == View.VISIBLE)
+        	playerSelect.setVisibility(View.GONE);
+        else
+        	playerSelect.setVisibility(View.VISIBLE);
     }
 
     public void onClickPlayerSelectRadioGroup(View view) {
@@ -99,5 +102,22 @@ public class TeaCupConfiguration extends Activity {
     }
 
 
+    public void onClickGetLastFMArtWifi(View view) {
+    	onClickLastFMArt();
+    }
+    
+    public void onClickGetLastFMArtNetwork(View view) {
+    	onClickLastFMArt();
+    }
+    
+    private void onClickLastFMArt() {
+    	CheckBox wifi = (CheckBox) findViewById(R.id.getLastFMArtWifi);
+    	CheckBox network = (CheckBox) findViewById(R.id.getLastFMArtNetwork);
+    	View directory = findViewById(R.id.lastFMDirectory);
+    	if (wifi.isChecked() || network.isChecked()) 
+    		directory.setVisibility(View.VISIBLE);
+    	else
+    		directory.setVisibility(View.GONE);
+    }
 
 }

@@ -33,12 +33,39 @@
         android:checked="true"
         android:text="@string/getDirectoryArt" />
 
+    <CheckBox
+        android:id="@+id/getLastFMArtWifi"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/getDirectoryArt"
+        android:checked="true"
+        android:text="@string/getLastFMArtWifi"
+        android:onClick="onClickGetLastFMArtWifi" />
+
+    <CheckBox
+        android:id="@+id/getLastFMArtNetwork"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/getLastFMArtWifi"
+        android:checked="true"
+        android:text="@string/getLastFMArtNetwork"
+        android:onClick="onClickGetLastFMArtNetwork" />
+    
+    <EditText
+        android:id="@+id/lastFMDirectory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textUri"
+        android:layout_below="@+id/getLastFMArtNetwork"
+        android:hint="@string/lastFMDirectoryHint" />
 
     <LinearLayout
         android:id="@+id/playerSelectedLine"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/getDirectoryArt"
+        android:layout_below="@+id/lastFMDirectory"
         android:clickable="true"
         android:onClick="onClickSelectPlayer" >
 
@@ -345,12 +372,14 @@
         android:orientation="horizontal"
         android:paddingTop="20dp">
 
-       <Button android:layout_width="wrap_content"
+       <Button android:layout_width="0dp"
+               android:layout_weight="1"
                android:layout_height="wrap_content"
                android:id="@+id/okbutton"
                android:text="OK"></Button>
 
-       <Button android:layout_width="wrap_content"
+       <Button android:layout_width="0dp"
+               android:layout_weight="1"
                android:layout_height="wrap_content"
                android:text="Cancel"
                android:id="@+id/cancelbutton"></Button>
