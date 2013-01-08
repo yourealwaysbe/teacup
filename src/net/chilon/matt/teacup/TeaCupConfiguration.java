@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -45,7 +46,7 @@ public class TeaCupConfiguration extends Activity {
                 config.writeConfigToSharedPreferences(self);
 
                 ServiceStarter.restartService(getApplicationContext());
-
+                
                 Intent resultValue = new Intent();
                 resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
                                      teaCupId);
@@ -96,6 +97,7 @@ public class TeaCupConfiguration extends Activity {
             customPlayerOptions.setVisibility(View.GONE);
         }
     }
+
 
 
 }

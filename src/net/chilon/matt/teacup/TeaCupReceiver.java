@@ -15,6 +15,7 @@ import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 import android.provider.MediaStore;
 import android.support.v4.content.CursorLoader;
+import android.util.Log;
 import android.widget.RemoteViews;
 
 
@@ -31,15 +32,19 @@ public class TeaCupReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Config config = new Config(context);
-        PlayerConfig player = config.getPlayer();
-        String action = intent.getAction();
-        if (player.getMetaChangedAction().equals(action)) {
-            updateMeta(config, context, intent);
-        }
-        if (player.getPlaystateChangedAction().equals(action)) {
-            updatePlaystate(config, context, intent);
-        }
+    	try {
+    		Config config = new Config(context);
+    		PlayerConfig player = config.getPlayer();
+    		String action = intent.getAction();
+    		if (player.getMetaChangedAction().equals(action)) {
+    			updateMeta(config, context, intent);
+    		}
+    		if (player.getPlaystateChangedAction().equals(action)) {
+    			updatePlaystate(config, context, intent);
+    		}
+    	} catch (Exception e) {
+    		Log.e("TeaCupReceiver", e.toString());
+    	}
     }
 
     private void updateMeta(Config config,
