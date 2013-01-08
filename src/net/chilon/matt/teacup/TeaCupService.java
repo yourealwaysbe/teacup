@@ -18,12 +18,12 @@ public class TeaCupService extends Service {
         filter.addAction(config.getPlayer().getMetaChangedAction());
         filter.addAction(config.getPlayer().getPlaystateChangedAction());
         receiver = new TeaCupReceiver();
-        getApplicationContext().registerReceiver(receiver, filter);
+        registerReceiver(receiver, filter);
     }
 
     public void onDestroy() {
         if (receiver != null)
-            getApplicationContext().unregisterReceiver(receiver);
+            unregisterReceiver(receiver);
     }
 
     @Override

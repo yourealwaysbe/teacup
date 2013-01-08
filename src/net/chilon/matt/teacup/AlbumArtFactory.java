@@ -56,6 +56,7 @@ public class AlbumArtFactory {
     		artBmp = BitmapFactory.decodeStream(is);
     	} catch (IOException e) {
     		// do nothing
+    		System.out.println("art io exception: " + e);
     	}
     	
     	return artBmp;

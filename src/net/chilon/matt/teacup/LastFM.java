@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.regex.Pattern;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -12,7 +11,6 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
@@ -127,8 +125,10 @@ public class LastFM {
 			}
 		} catch (XmlPullParserException e) {
 			// do nothing
+			System.out.println("xmlpullparserexception: " + e);
 		} catch (IOException e) {
 			// do nothing
+			System.out.println("ioexception: " + e);
 		}
         
         return null;
