@@ -34,12 +34,9 @@ public class TeaCupUpdater extends IntentService {
         String filename;
     }
 
-    Handler mMainThreadHandler = null;
 
     public TeaCupUpdater() {
         super(TeaCupUpdater.class.getName());
-        
-        mMainThreadHandler = new Handler();
     }
 
 
