@@ -15,7 +15,6 @@ import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 import android.os.Handler;
 import android.provider.MediaStore;
-import android.support.v4.content.CursorLoader;
 import android.widget.RemoteViews;
 
 public class TeaCupUpdater extends IntentService {

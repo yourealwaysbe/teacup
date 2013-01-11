@@ -1,22 +1,11 @@
 package net.chilon.matt.teacup;
 
-import java.io.File;
-import java.io.FileFilter;
 
-import net.chilon.matt.teacup.R;
-import android.appwidget.AppWidgetManager;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.media.MediaMetadataRetriever;
-import android.provider.MediaStore;
-import android.support.v4.content.CursorLoader;
+
 import android.util.Log;
-import android.widget.RemoteViews;
 
 
 public class TeaCupReceiver extends BroadcastReceiver {
