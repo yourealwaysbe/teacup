@@ -6,12 +6,14 @@ import java.io.FileFilter;
 import android.app.IntentService;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v4.content.CursorLoader;
 import android.widget.RemoteViews;
@@ -33,9 +35,12 @@ public class TeaCupUpdater extends IntentService {
         String filename;
     }
 
+    Handler mMainThreadHandler = null;
 
     public TeaCupUpdater() {
-        super("TeaCupUpdater");
+        super(TeaCupUpdater.class.getName());
+        
+        mMainThreadHandler = new Handler();
     }
 
 
@@ -57,7 +62,7 @@ public class TeaCupUpdater extends IntentService {
                             Context context,
                             Intent intent) {
         MetaData meta = getMeta(config, context, intent);
-
+    	
         String artist;
         String title;
         Bitmap artBmp;
@@ -183,13 +188,12 @@ public class TeaCupUpdater extends IntentService {
                 MediaStore.Audio.Media.DATA
             };
             String selection = MediaStore.Audio.Media._ID + " = ?";
-            CursorLoader q = new CursorLoader(context,
-                                              MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                                              projection,
-                                              selection,
-                                              selectionArgs,
-                                              null);
-            Cursor result = q.loadInBackground();
+            ContentResolver resolver = getContentResolver();
+            Cursor result = resolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                                           projection,
+                                           selection,
+                                           selectionArgs,
+                                           null);
             if (result.getCount() > 0) {
                 result.moveToFirst();
                 meta = new MetaData();

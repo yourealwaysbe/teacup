@@ -38,13 +38,15 @@
             </intent-filter>
         </activity>
         
-        <service android:name="TeaCupService">
+        <service android:name="TeaCupService"
+                 android:exported="false">
             <intent-filter >
                 <action android:name="net.chilon.matt.teacupservice.TEACUP_SERVICE" />
             </intent-filter>
         </service>
         
-        <service android:name="TeaCupUpdater"/>
+        <service android:name="TeaCupUpdater"
+                 android:exported="false"/>
 
         <receiver android:name="ServiceStarter">
             <intent-filter >
