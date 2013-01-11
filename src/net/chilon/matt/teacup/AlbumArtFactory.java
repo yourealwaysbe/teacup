@@ -3,6 +3,7 @@ package net.chilon.matt.teacup;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -32,11 +33,11 @@ public class AlbumArtFactory {
     public static Bitmap readBytes(byte[] data) {
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
-        BitmapFactory.decodeByteArray(data, 0, data.length);
+        BitmapFactory.decodeByteArray(data, 0, data.length, options);
         options.inSampleSize = calculateInSampleSize(options);
         options.inJustDecodeBounds = false;
         options.inPurgeable = true;
-        return BitmapFactory.decodeByteArray(data, 0, data.length);
+        return BitmapFactory.decodeByteArray(data, 0, data.length, options);
     }
     
 
@@ -44,16 +45,17 @@ public class AlbumArtFactory {
     	Bitmap artBmp = null;
     	
     	try {
-    		URLConnection ucon = new URL(url).openConnection();
-    		InputStream is = ucon.getInputStream();
-    
-    		final BitmapFactory.Options options = new BitmapFactory.Options();
-    		options.inJustDecodeBounds = true;
-    		BitmapFactory.decodeStream(is);
-    		options.inSampleSize = calculateInSampleSize(options);
-    		options.inJustDecodeBounds = false;
-    		options.inPurgeable = true;
-    		artBmp = BitmapFactory.decodeStream(is);
+    		System.out.println("Getting: '" + url + "'");
+    		
+    		HttpURLConnection ucon = (HttpURLConnection)new URL(url).openConnection();
+    		
+    		int response = ucon.getResponseCode();
+    		
+    		if(response == HttpURLConnection.HTTP_OK) {
+    			// can't calculate for downsizing here... (unless we do the request twice)
+    			InputStream is = ((URLConnection)ucon).getInputStream();
+    			artBmp = BitmapFactory.decodeStream(is);
+    		}
     	} catch (IOException e) {
     		// do nothing
     		System.out.println("art io exception: " + e);

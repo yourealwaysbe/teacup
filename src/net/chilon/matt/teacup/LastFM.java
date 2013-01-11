@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -18,13 +19,21 @@ public class LastFM {
 	
 	private static final String API_KEY = "d6e802774ce70edfca5d501009377a53";
 	private static final String API_ROOT = "http://ws.audioscrobbler.com/2.0/";
+	private static final String GET_ALBUM_INFO = "method=album.getinfo";
+	private static final String API_KEY_ARG = "api_key=" + API_KEY;
+	private static final String ARTIST_ARG = "artist=%s";
+	private static final String ALBUM_ARG = "album=%s";
 	
 	private static final String IMAGE_TAG = "image";
-	private static final String IMAGE_SIZE = "small";
+	private static final String IMAGE_SIZE = "large";
 	private static final String SIZE_NAMESPACE = "";
 	private static final String SIZE_ATTRIBUTE = "size";
 	
-	private static final String URL_TEMPLATE = "http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key=d6e802774ce70edfca5d501009377a53&artist=Smiths&album=Rank";
+	private static final String URL_TEMPLATE = API_ROOT + "?" +
+	                                           GET_ALBUM_INFO + "&" +
+	                                           API_KEY_ARG + "&" +
+	                                           ARTIST_ARG + "&" +
+	                                           ALBUM_ARG;
 
 	
 	public static Bitmap getArt(Context context,
@@ -54,7 +63,7 @@ public class LastFM {
 		if (shouldConnect(config, context)) {
 			String artUrl = getArtUrl(artist, album);
 			if (artUrl != null) {
-				AlbumArtFactory.readUrl(artUrl);
+				artBmp = AlbumArtFactory.readUrl(artUrl);
 			}
 		}
 		
@@ -100,16 +109,20 @@ public class LastFM {
 			XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
 			factory.setNamespaceAware(false);
 			XmlPullParser xpp = factory.newPullParser();
-
-			URL url = new URL("http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key=d6e802774ce70edfca5d501009377a53&artist=Smiths&album=Rank");
-			URLConnection ucon = url.openConnection();
+			
+			String webArtist = URLEncoder.encode(artist, "UTF-8");
+			String webAlbum = URLEncoder.encode(album, "UTF-8");			
+			
+			URL url = new URL(String.format(URL_TEMPLATE, webArtist, webAlbum));
+			URLConnection ucon = url.openConnection();			
 			InputStream is = ucon.getInputStream();
-        
+			
 			xpp.setInput(is, null);
         
 			int eventType = xpp.getEventType();
         
 			while (eventType != XmlPullParser.END_DOCUMENT) {
+				
 				if (eventType == XmlPullParser.START_TAG &&
 						IMAGE_TAG.equals(xpp.getName())) {
         		
@@ -121,7 +134,9 @@ public class LastFM {
 							return xpp.getText();
 						}
 					}
-				}    
+				}
+				xpp.next();
+				eventType = xpp.getEventType();
 			}
 		} catch (XmlPullParserException e) {
 			// do nothing

@@ -49,7 +49,7 @@ public class Config {
     private static final boolean DEFAULT_GET_DIRECTORY_ART = true;
     private static final boolean DEFAULT_GET_LASTFM_ART_WIFI = true;
     private static final boolean DEFAULT_GET_LASTFM_ART_NETWORK = false;
-    private static final String DEFAULT_LASTFM_DIRECTORY = Environment.getExternalStorageDirectory().getPath() + ".teacup";
+    private static final String DEFAULT_LASTFM_DIRECTORY = Environment.getExternalStorageDirectory().getPath() + "/.teacup";
     private static final int DEFAULT_SELECTED_PLAYER_ID = DEFAULT_PLAYER_ID;
     private static final String DEFAULT_PLAYER_NAME = ANDROID_PLAYER_NAME;
     private static final String DEFAULT_PLAYER_PACKAGE = "com.android.music";

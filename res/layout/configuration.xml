@@ -52,7 +52,7 @@
         android:checked="true"
         android:text="@string/getLastFMArtNetwork"
         android:onClick="onClickGetLastFMArtNetwork" />
-    
+        
     <EditText
         android:id="@+id/lastFMDirectory"
         android:layout_width="match_parent"
