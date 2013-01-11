@@ -12,8 +12,8 @@ import android.graphics.BitmapFactory;
 
 public class AlbumArtFactory {
 
-    private static final int ART_WIDTH = 72;
-    private static final int ART_HEIGHT = 72;
+    private static final int ART_WIDTH = 120;
+    private static final int ART_HEIGHT = 120;
 	
     // code below from android tutorial (more or less):
     // https://developer.android.com/training/displaying-bitmaps/load-bitmap.html
