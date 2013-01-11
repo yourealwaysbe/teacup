@@ -54,6 +54,7 @@ public class TeaCup extends AppWidgetProvider {
                          int[] appWidgetIds) {
         Config config = new Config(context);
         makeButtons(context, appWidgetManager, appWidgetIds, config);
+        ServiceStarter.restartService(context);
         super.onUpdate(context, appWidgetManager, appWidgetIds);
     }
 
