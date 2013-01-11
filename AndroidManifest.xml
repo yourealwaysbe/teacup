@@ -43,6 +43,8 @@
                 <action android:name="net.chilon.matt.teacupservice.TEACUP_SERVICE" />
             </intent-filter>
         </service>
+        
+        <service android:name="TeaCupUpdater"/>
 
         <receiver android:name="ServiceStarter">
             <intent-filter >
