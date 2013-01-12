@@ -13,6 +13,8 @@ import android.util.Log;
 
 public class AlbumArtFactory {
 
+	private static final int URL_TIMEOUT = 3000;
+	
     private static final int ART_WIDTH = 120;
     private static final int ART_HEIGHT = 120;
 	
@@ -49,6 +51,8 @@ public class AlbumArtFactory {
     		Log.d("TeaCup", "Getting: '" + url + "'");
     		
     		HttpURLConnection ucon = (HttpURLConnection)new URL(url).openConnection();
+    		ucon.setConnectTimeout(URL_TIMEOUT);
+    		ucon.setReadTimeout(URL_TIMEOUT);
     		
     		int response = ucon.getResponseCode();
     		

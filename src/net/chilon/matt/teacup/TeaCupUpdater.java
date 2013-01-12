@@ -17,7 +17,7 @@ import android.provider.MediaStore;
 import android.widget.RemoteViews;
 
 public class TeaCupUpdater extends IntentService {
-
+	
     public static final String UPDATE_PLAYSTATE = "update-playstate";
     public static final String UPDATE_META = "update-meta";
 

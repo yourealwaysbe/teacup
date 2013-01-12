@@ -18,6 +18,8 @@ import android.util.Log;
 
 public class LastFM {
 	
+	private static final int URL_TIMEOUT = 5000;
+	
 	private static final String API_KEY = "d6e802774ce70edfca5d501009377a53";
 	private static final String API_ROOT = "http://ws.audioscrobbler.com/2.0/";
 	private static final String GET_ALBUM_INFO = "method=album.getinfo";
@@ -115,7 +117,9 @@ public class LastFM {
 			String webAlbum = URLEncoder.encode(album, "UTF-8");			
 			
 			URL url = new URL(String.format(URL_TEMPLATE, webArtist, webAlbum));
-			URLConnection ucon = url.openConnection();			
+			URLConnection ucon = url.openConnection();
+			ucon.setConnectTimeout(URL_TIMEOUT);
+			ucon.setReadTimeout(URL_TIMEOUT);
 			InputStream is = ucon.getInputStream();
 			
 			xpp.setInput(is, null);
