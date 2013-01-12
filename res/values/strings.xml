@@ -3,6 +3,13 @@
     <string name="app_name">TeaCup</string>
     <string name="notitle">It\'s oh so quiet.</string>
     <string name="albumArtDesc">Album Art.</string>
+    
+    <string name="lastFMCacheDesc">Cache album art</string>
+    <string name="lastFMCacheStyle">Cache directory</string>
+    <string name="lastFMCacheNone">Don\'t cache album art</string>
+	<string name="lastFMCacheInDir">Cache in specified directory</string>
+    <string name="lastFMCacheWithMusic">Cache in music file directory</string>
+	
     <string name="playPauseDesc">Play/Pause.</string>
     <string name="noartist">Shh!</string>
     <string name="jumpNextDesc">Jump to next track.</string>

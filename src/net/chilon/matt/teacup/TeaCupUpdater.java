@@ -103,7 +103,11 @@ public class TeaCupUpdater extends IntentService {
         if (artBmp == null && getDirectoryArt)
             artBmp = getImageFromDirectory(meta.filename);
         if (artBmp == null) {
-            artBmp = LastFM.getArt(context, config, meta.artist, meta.album);
+            artBmp = LastFM.getArt(context, 
+            		               config, 
+            		               meta.artist, 
+            		               meta.album, 
+            		               meta.filename);
         }
 
         if (artBmp == null) {

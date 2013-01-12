@@ -6,10 +6,12 @@ import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -38,7 +40,8 @@ public class TeaCupConfiguration extends Activity {
         config.writeConfigToActivity(this);
 
         showHideCustomOptions(config.getPlayer().getPlayerId());
-
+        adjustLastFMVisibility();
+        
         Button ok = (Button) findViewById(R.id.okbutton);
         ok.setOnClickListener(new OnClickListener() {
             public void onClick(View view) {
@@ -88,6 +91,20 @@ public class TeaCupConfiguration extends Activity {
 
         showHideCustomOptions(checkedId);
     }
+    
+    public void onClickLastFMCacheRadioGroup(View view) {
+    	View group = (View) findViewById(R.id.selectLastFMCacheRadioGroup);
+    	group.setVisibility(View.GONE);
+    	adjustLastFMVisibility();
+    }
+    
+    public void onClickLastFMCacheLine(View view) {
+    	View group = (View) findViewById(R.id.selectLastFMCacheRadioGroup);
+    	if (group.getVisibility() == View.VISIBLE)
+    		group.setVisibility(View.GONE);
+    	else
+    		group.setVisibility(View.VISIBLE);
+    }
 
 
 
@@ -100,6 +117,32 @@ public class TeaCupConfiguration extends Activity {
             customPlayerOptions.setVisibility(View.GONE);
         }
     }
+    
+    private void adjustLastFMVisibility() {
+    	CheckBox wifi = (CheckBox) findViewById(R.id.getLastFMArtWifi);
+    	CheckBox network = (CheckBox) findViewById(R.id.getLastFMArtNetwork);
+
+    	RadioGroup styleGroup = (RadioGroup) findViewById(R.id.selectLastFMCacheRadioGroup);    	
+    	View lastFMCacheDir = (View) findViewById(R.id.lastFMDirectory);
+    	View cacheLine = (View) findViewById(R.id.lastFMCacheLine);
+		    	
+    	if (wifi.isChecked() || network.isChecked()) {
+    		int styleId = styleGroup.getCheckedRadioButtonId();
+        	if (styleId == R.id.lastFMCacheInDir)
+        		lastFMCacheDir.setVisibility(View.VISIBLE);
+        	else
+        		lastFMCacheDir.setVisibility(View.GONE);
+        	
+        	cacheLine.setVisibility(View.VISIBLE);
+        	TextView cacheStyle = (TextView) findViewById(R.id.lastFMCacheStyle);
+        	RadioButton styleButton = (RadioButton) findViewById(styleId);
+        	cacheStyle.setText(styleButton.getText());
+    	} else {
+    		Log.d("TeaCup", "huh");
+    		cacheLine.setVisibility(View.GONE);
+    		lastFMCacheDir.setVisibility(View.GONE);
+    	}
+    }
 
 
     public void onClickGetLastFMArtWifi(View view) {
@@ -111,13 +154,7 @@ public class TeaCupConfiguration extends Activity {
     }
     
     private void onClickLastFMArt() {
-    	CheckBox wifi = (CheckBox) findViewById(R.id.getLastFMArtWifi);
-    	CheckBox network = (CheckBox) findViewById(R.id.getLastFMArtNetwork);
-    	View directory = findViewById(R.id.lastFMDirectory);
-    	if (wifi.isChecked() || network.isChecked()) 
-    		directory.setVisibility(View.VISIBLE);
-    	else
-    		directory.setVisibility(View.GONE);
+    	adjustLastFMVisibility();
     }
 
 }

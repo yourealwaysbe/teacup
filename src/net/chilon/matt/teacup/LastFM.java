@@ -1,5 +1,8 @@
 package net.chilon.matt.teacup;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -38,29 +41,90 @@ public class LastFM {
 	                                           ARTIST_ARG + "&" +
 	                                           ALBUM_ARG;
 
+	private static final Bitmap.CompressFormat CACHE_TYPE = Bitmap.CompressFormat.PNG;
+	private static final String CACHE_EXT = ".png";
 	
 	public static Bitmap getArt(Context context,
 			                    Config config, 
 			                    String artist, 
-			                    String album) {
-		Bitmap artBmp = getCachedArt(config.getLastFMDirectory(), artist, album);
+			                    String album,
+			                    String filename) {
+		Bitmap artBmp = null;
 		
-		if (artBmp == null)
-			artBmp = getWebArt(context, config, artist, album);
-		
+		if (config.getLastFMCacheStyle() != Config.LASTFM_NO_CACHE)
+			artBmp = getCachedArt(config, artist, album, filename);
+				
+		if (artBmp == null) {
+			artBmp = getWebArt(context, config, artist, album, filename);
+			if (artBmp != null)
+				cacheBitmap(config, artist, album, filename, artBmp);
+		}
+			
 		return artBmp;
 	}
 	
-	private static Bitmap getCachedArt(String directory, 
+	private static void cacheBitmap(Config config,
+			                        String artist,
+			                        String album,
+			                        String filename,
+			                        Bitmap artBmp) {
+		try {
+			String directory = getCacheDir(config, filename);
+			File dir = new File(directory);
+			if (!dir.exists())
+				dir.mkdirs();
+			String imageName = directory +
+					           File.separator +
+				               getCacheFileName(artist, album);
+			File image = new File(imageName);
+			if (!image.exists()) {
+				FileOutputStream os = new FileOutputStream(image);
+
+				artBmp.compress(CACHE_TYPE, 85, os);
+				os.flush();
+				os.close();
+			}
+		} catch (FileNotFoundException e) {
+			Log.e("TeaCup", "filenotfoundexception: " + e.toString());
+		} catch (IOException e) {
+			Log.e("TeaCup", "ioexception: " + e.toString());
+		}
+	}
+	
+	private static Bitmap getCachedArt(Config config, 
 			                           String artist, 
-			                           String album) {
-		return null;
+			                           String album,
+			                           String filename) {
+		String imageName = getCacheDir(config,  filename) +
+				           File.separator +
+				           getCacheFileName(artist, album);
+		File image = new File(imageName);
+		if (image.exists())
+			return AlbumArtFactory.readFile(image);
+		else
+			return null;
+	}
+	
+	private static String getCacheDir(Config config, String filename) {
+		switch (config.getLastFMCacheStyle()) {
+		case Config.LASTFM_CACHE_INDIR: return config.getLastFMDirectory();
+		case Config.LASTFM_CACHE_WITHMUSIC: return new File(filename).getParent();
+		default: return null;
+		}
+	}
+	
+	private static String getCacheFileName(String artist, String album) {
+		String cleanArtist = artist.replaceAll("\\W+", "");
+		String cleanAlbum = album.replaceAll("\\W+", "");
+		
+		return cleanArtist + cleanAlbum + CACHE_EXT;
 	}
 	
 	private static Bitmap getWebArt(Context context,
 			                        Config config,
 			                        String artist, 
-			                        String album) {
+			                        String album,
+			                        String filename) {
 		Bitmap artBmp = null;
 		
 		if (shouldConnect(config, context)) {

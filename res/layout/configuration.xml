@@ -53,12 +53,84 @@
         android:text="@string/getLastFMArtNetwork"
         android:onClick="onClickGetLastFMArtNetwork" />
         
+    <LinearLayout
+        android:id="@+id/lastFMCacheLine"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/getLastFMArtNetwork"
+        android:clickable="true"
+        android:onClick="onClickLastFMCacheLine" >
+
+        <LinearLayout
+            android:id="@+id/lastFMCacheView"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/lastFMCacheDesc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/lastFMCacheDesc"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+            <TextView
+                android:id="@+id/lastFMCacheStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/lastFMCacheStyle"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/selectLastFMCacheImage"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/selectPlayerDesc"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_next_arrow" />
+
+    </LinearLayout>
+
+
+    <RadioGroup
+        android:id="@+id/selectLastFMCacheRadioGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@id/lastFMCacheLine"
+        android:visibility="gone" >
+
+        <RadioButton
+            android:id="@+id/lastFMCacheNone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/lastFMCacheNone"
+            android:onClick="onClickLastFMCacheRadioGroup" />
+
+       <RadioButton
+            android:id="@+id/lastFMCacheInDir"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/lastFMCacheInDir"
+            android:onClick="onClickLastFMCacheRadioGroup" />
+
+       <RadioButton
+            android:id="@+id/lastFMCacheWithMusic"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/lastFMCacheWithMusic"
+            android:onClick="onClickLastFMCacheRadioGroup" />
+    </RadioGroup>
+    
     <EditText
         android:id="@+id/lastFMDirectory"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="textUri"
-        android:layout_below="@+id/getLastFMArtNetwork"
+        android:layout_below="@+id/selectLastFMCacheRadioGroup"
+        android:visibility="gone"
         android:hint="@string/lastFMDirectoryHint" />
 
     <LinearLayout
