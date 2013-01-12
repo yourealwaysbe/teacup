@@ -14,6 +14,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.util.Log;
 
 public class LastFM {
 	
@@ -140,10 +141,10 @@ public class LastFM {
 			}
 		} catch (XmlPullParserException e) {
 			// do nothing
-			System.out.println("xmlpullparserexception: " + e);
+			Log.d("TeaCup", "xmlpullparserexception: " + e);
 		} catch (IOException e) {
 			// do nothing
-			System.out.println("ioexception: " + e);
+			Log.d("TeaCup", "ioexception: " + e);
 		}
         
         return null;

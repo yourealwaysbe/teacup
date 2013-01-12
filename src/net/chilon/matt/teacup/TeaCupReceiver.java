@@ -12,8 +12,8 @@ public class TeaCupReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-    	System.out.println("received: " + intent.getAction());
     	try {
+        	Log.d("TeaCup", "received: " + intent.getAction());
     		Config config = new Config(context);
     		PlayerConfig player = config.getPlayer();
     		String action = intent.getAction();
@@ -23,8 +23,8 @@ public class TeaCupReceiver extends BroadcastReceiver {
     		if (player.getPlaystateChangedAction().equals(action)) {
     			updatePlaystate(config, context, intent);
     		}
+    		Log.d("TeaCup", "receiver done");
     	} catch (Exception e) {
-    		System.out.println("Lofi error reporting: " + e);
     		Log.e("TeaCupReceiver", e.toString());
     	}
     }

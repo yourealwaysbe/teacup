@@ -9,6 +9,7 @@ import java.net.URLConnection;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 
 public class AlbumArtFactory {
 
@@ -45,7 +46,7 @@ public class AlbumArtFactory {
     	Bitmap artBmp = null;
     	
     	try {
-    		System.out.println("Getting: '" + url + "'");
+    		Log.d("TeaCup", "Getting: '" + url + "'");
     		
     		HttpURLConnection ucon = (HttpURLConnection)new URL(url).openConnection();
     		
@@ -58,7 +59,7 @@ public class AlbumArtFactory {
     		}
     	} catch (IOException e) {
     		// do nothing
-    		System.out.println("art io exception: " + e);
+    		Log.d("TeaCup", "art io exception: " + e);
     	}
     	
     	return artBmp;
