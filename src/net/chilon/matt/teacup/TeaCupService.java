@@ -79,7 +79,7 @@ public class TeaCupService extends Service {
                 args.context = context;
                 args.intent = intent;
                 new ReceiveTask().execute(args);
-            }	
+            }
         };
         registerReceiver(receiver, filter);	
     }
@@ -88,7 +88,11 @@ public class TeaCupService extends Service {
     	Context context;
     	Intent intent;
     }
+
     
+	private static ReceiveTask previousMeta = null;
+	private static ReceiveTask previousPlayPause = null;
+	
     private class ReceiveTask extends AsyncTask<ReceiveArgs, Void, Void> {
 
     	protected Void doInBackground(ReceiveArgs... args) {
@@ -100,9 +104,17 @@ public class TeaCupService extends Service {
             	PlayerConfig player = config.getPlayer();
             	String action = intent.getAction();
             	if (player.getMetaChangedAction().equals(action)) {
+            		if (previousMeta != null) {
+            			previousMeta.cancel(true);
+            			previousMeta = this;
+            		}
             		updateMeta(config, context, intent);
             	}
             	if (player.getPlaystateChangedAction().equals(action)) {
+            		if (previousPlayPause != null) {
+            			previousPlayPause.cancel(true);
+            			previousPlayPause = this;
+            		}
             		updatePlaystate(config, context, intent);
             	}
             	Log.d("TeaCup", "receiver done");
@@ -281,7 +293,11 @@ public class TeaCupService extends Service {
             views.setImageViewBitmap(R.id.albumArtButton, artBmp);
 
             ComponentName thisWidget = new ComponentName(context, TeaCup.class);
-            appWidgetManager.updateAppWidget(thisWidget, views);
+            
+            // better if we used a later API where we can guarantee serial in order 
+            // execution of the async task, but just this check should be good enough
+            if (!isCancelled())
+            	appWidgetManager.updateAppWidget(thisWidget, views);
         }
 
         private void updateWidget(Context context,
@@ -294,7 +310,9 @@ public class TeaCupService extends Service {
             views.setImageViewBitmap(R.id.playPauseButton, playButton);
 
             ComponentName thisWidget = new ComponentName(context, TeaCup.class);
-            appWidgetManager.updateAppWidget(thisWidget, views);
+            
+            if (!isCancelled())
+            	appWidgetManager.updateAppWidget(thisWidget, views);
         }
     }    
 }
