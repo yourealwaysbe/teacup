@@ -44,29 +44,9 @@ public class AlbumArtFactory {
     }
     
 
-    public static Bitmap readUrl(String url) {
-    	Bitmap artBmp = null;
-    	
-    	try {
-    		Log.d("TeaCup", "Getting: '" + url + "'");
-    		
-    		HttpURLConnection ucon = (HttpURLConnection)new URL(url).openConnection();
-    		ucon.setConnectTimeout(URL_TIMEOUT);
-    		ucon.setReadTimeout(URL_TIMEOUT);
-    		
-    		int response = ucon.getResponseCode();
-    		
-    		if(response == HttpURLConnection.HTTP_OK) {
-    			// can't calculate for downsizing here... (unless we do the request twice)
-    			InputStream is = ((URLConnection)ucon).getInputStream();
-    			artBmp = BitmapFactory.decodeStream(is);
-    		}
-    	} catch (IOException e) {
-    		// do nothing
-    		Log.d("TeaCup", "art io exception: " + e);
-    	}
-    	
-    	return artBmp;
+    public static Bitmap readStream(InputStream is) {
+    	// can't read a stream twice, so no downsizing.
+    	return BitmapFactory.decodeStream(is);
     }
     
     

@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -166,12 +165,6 @@ public class TeaCupConfiguration extends Activity {
     }
     
     public void onClickPrefetchLastFMArt(View view) {
-    	
-    	if (prefetcher != null) {
-    		Log.d("TeaCup", "prefetch status: " + prefetcher.getStatus());
-    		Log.d("TeaCup", "is cancelled: " + prefetcher.isCancelled());
-    	}
-    	
     	if (prefetcher == null || 
     		prefetcher.isDone()) {
     		startPrefetchLastFMAlbumArt();

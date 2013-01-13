@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
@@ -51,20 +52,37 @@ public class LastFM {
 	private static final Bitmap.CompressFormat CACHE_TYPE = Bitmap.CompressFormat.PNG;
 	private static final String CACHE_EXT = ".png";
 	
+	// we're limited to 5 requests per second, so will call "makeRequest" before each connection
+	// and this will enforce the limit
+	private static final int MAX_REQUESTS = 5;
+	private static final int TIME_SLICE_LEN = 1000;
+	private static final int TIME_SAFETY_BUFFER = 10;
+	
+	private static long timeSliceBegin = -1;
+	private static int numRequests = 0;
+	
 	public static Bitmap getArt(Context context,
 			                    Config config, 
 			                    String artist, 
 			                    String album,
 			                    String filename) {
 		Bitmap artBmp = null;
-		
-		if (config.getLastFMCacheStyle() != Config.LASTFM_NO_CACHE)
-			artBmp = getCachedArt(config, artist, album, filename);
+		try {
+			artBmp = getArtUnprotected(context, 
+					                   config,
+					                   artist,
+					                   album,
+					                   filename);
+			if (config.getLastFMCacheStyle() != Config.LASTFM_NO_CACHE)
+				artBmp = getCachedArt(config, artist, album, filename);
 				
-		if (artBmp == null) {
-			artBmp = getWebArt(context, config, artist, album, filename);
-			if (artBmp != null)
-				cacheBitmap(config, artist, album, filename, artBmp);
+			if (artBmp == null) {
+				artBmp = getWebArt(context, config, artist, album, filename);
+				if (artBmp != null)
+					cacheBitmap(config, artist, album, filename, artBmp);
+			}
+		} catch (InterruptedException e) {
+			Log.w("TeaCup", "Last FM get art operation interrupted", e);
 		}
 			
 		return artBmp;
@@ -73,45 +91,73 @@ public class LastFM {
 	public static int prefetchArt(Context context, 
 			                      Config config, 
 			                      ProgressUpdater progress) {
-		if (shouldConnect(config,  context)) {
-			String projection[] = {
-				MediaStore.Audio.Media.ARTIST,
-				MediaStore.Audio.Media.ALBUM,
-				MediaStore.Audio.Media.DATA
-			};
-			String selection = "";
-			ContentResolver resolver = context.getContentResolver();
-			Cursor result = resolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-					                       projection,
-	                                       selection,
-	                                       null,
-	                                       null);
+		try {
+			if (shouldConnect(config,  context)) {
+				String projection[] = {
+					MediaStore.Audio.Media.ARTIST,
+					MediaStore.Audio.Media.ALBUM,
+					MediaStore.Audio.Media.DATA
+				};
+				String selection = "";
+				ContentResolver resolver = context.getContentResolver();
+				Cursor result = resolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+						                       projection,
+	                                           selection,
+	                                           null,
+	                                           null);
 	        
-			int count = result.getCount();
-			int done = 0;
-			result.moveToFirst();
-			while (!result.isAfterLast() && !progress.getCancelled()) {
-				String artist = result.getString(0);
-				String album = result.getString(1);
-				String filename = result.getString(2);
+				int count = result.getCount();
+				int done = 0;
+				result.moveToFirst();
+				while (!result.isAfterLast() && !progress.getCancelled()) {
+					String artist = result.getString(0);
+					String album = result.getString(1);
+					String filename = result.getString(2);
 	    	
-				getArt(context, config, artist, album, filename);
+					getArtUnprotected(context, 
+							          config, 
+							          artist, 
+							          album, 
+							          filename);
 	    	
-				++done;
-				progress.setProgressPercent((100*done)/count);
+					++done;
+					progress.setProgressPercent((100*done)/count);
 	    	
-				result.moveToNext();
-			}
+					result.moveToNext();
+				}
 			
-			if (progress.getCancelled())
-				return PREFETCH_CANCELLED;
-			else 
-				return PREFETCH_OK;
-		} else {
-			return PREFETCH_NOCONNECTION;
+				if (progress.getCancelled())
+					return PREFETCH_CANCELLED;
+				else 
+					return PREFETCH_OK;
+			} else {
+				return PREFETCH_NOCONNECTION;
+			}
+		} catch (InterruptedException e) {
+			Log.w("TeaCup", "Last FM prefetch interrupted.", e);
+			return PREFETCH_CANCELLED;
 		}
 	}
-	
+
+	private static Bitmap getArtUnprotected(Context context,
+                                            Config config, 
+                                            String artist, 
+                                            String album,
+                                            String filename) throws InterruptedException {
+		Bitmap artBmp = null;
+
+		if (config.getLastFMCacheStyle() != Config.LASTFM_NO_CACHE)
+			artBmp = getCachedArt(config, artist, album, filename);
+
+		if (artBmp == null) {
+			artBmp = getWebArt(context, config, artist, album, filename);
+			if (artBmp != null)
+				cacheBitmap(config, artist, album, filename, artBmp);
+		}
+		
+		return artBmp;
+	}
+		
 	private static void cacheBitmap(Config config,
 			                        String artist,
 			                        String album,
@@ -173,13 +219,20 @@ public class LastFM {
 			                        Config config,
 			                        String artist, 
 			                        String album,
-			                        String filename) {
+			                        String filename) throws InterruptedException {
 		Bitmap artBmp = null;
 		
 		if (shouldConnect(config, context)) {
 			String artUrl = getArtUrl(artist, album);
 			if (artUrl != null) {
-				artBmp = AlbumArtFactory.readUrl(artUrl);
+				try {
+					InputStream is = makeRequest(new URL(artUrl));
+					artBmp = AlbumArtFactory.readStream(is);
+				} catch (MalformedURLException e) {
+					Log.e("TeaCup", "LastFM produced a malformed url!" + artUrl);
+				} catch (IOException e) {
+					Log.d("TeaCup", "ioexception:", e);
+				}
 			}
 		}
 		
@@ -220,7 +273,7 @@ public class LastFM {
     	return false;
 	}
 	
-	private static String getArtUrl(String artist, String album) {
+	private static String getArtUrl(String artist, String album) throws InterruptedException {
 		try {
 			XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
 			factory.setNamespaceAware(false);
@@ -230,10 +283,7 @@ public class LastFM {
 			String webAlbum = URLEncoder.encode(album, "UTF-8");			
 			
 			URL url = new URL(String.format(URL_TEMPLATE, webArtist, webAlbum));
-			URLConnection ucon = url.openConnection();
-			ucon.setConnectTimeout(URL_TIMEOUT);
-			ucon.setReadTimeout(URL_TIMEOUT);
-			InputStream is = ucon.getInputStream();
+			InputStream is = makeRequest(url);
 			
 			xpp.setInput(is, null);
         
@@ -265,5 +315,30 @@ public class LastFM {
 		}
         
         return null;
+	}
+	
+	private synchronized static InputStream makeRequest(URL url) 
+				throws IOException, InterruptedException {
+		
+		if (timeSliceBegin < 0)
+			timeSliceBegin = System.currentTimeMillis();
+		
+		long time = System.currentTimeMillis();
+		long sliceEnd = timeSliceBegin + TIME_SLICE_LEN;
+				
+		if (++numRequests > MAX_REQUESTS && time < sliceEnd) {
+			Log.d("TeaCup", "sleep!");
+			Thread.sleep(sliceEnd - time + TIME_SAFETY_BUFFER);
+			numRequests = 1;
+			timeSliceBegin = System.currentTimeMillis();
+		} else if (time > sliceEnd) {
+			numRequests = 0;
+			timeSliceBegin = System.currentTimeMillis();
+		}
+		
+		URLConnection ucon = url.openConnection();
+		ucon.setConnectTimeout(URL_TIMEOUT);
+		ucon.setReadTimeout(URL_TIMEOUT);
+		return ucon.getInputStream();
 	}
 }
