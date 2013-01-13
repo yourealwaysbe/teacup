@@ -37,6 +37,9 @@ public class TeaCupService extends Service {
 
 
     BroadcastReceiver receiver = null;
+   
+	private static UpdateMetaTask previousMeta = null;
+	
     
     public void onCreate() {
     	Log.d("TeaCup", "creating service receiver: " + receiver);
@@ -75,51 +78,80 @@ public class TeaCupService extends Service {
         receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                ReceiveArgs args = new ReceiveArgs();
-                args.context = context;
-                args.intent = intent;
-                new ReceiveTask().execute(args);
-            }
-        };
-        registerReceiver(receiver, filter);	
-    }
-    
-    private class ReceiveArgs {
-    	Context context;
-    	Intent intent;
-    }
-
-    
-	private static ReceiveTask previousMeta = null;
-	private static ReceiveTask previousPlayPause = null;
-	
-    private class ReceiveTask extends AsyncTask<ReceiveArgs, Void, Void> {
-
-    	protected Void doInBackground(ReceiveArgs... args) {
-            try {
-                Context context = args[0].context;
-                Intent intent = args[0].intent;
             	Log.d("TeaCup", "received: " + intent.getAction());
             	Config config = new Config(context);
             	PlayerConfig player = config.getPlayer();
             	String action = intent.getAction();
-            	if (player.getMetaChangedAction().equals(action)) {
-            		if (previousMeta != null) {
-            			previousMeta.cancel(true);
-            			previousMeta = this;
-            		}
-            		updateMeta(config, context, intent);
-            	}
-            	if (player.getPlaystateChangedAction().equals(action)) {
-            		if (previousPlayPause != null) {
-            			previousPlayPause.cancel(true);
-            			previousPlayPause = this;
-            		}
-            		updatePlaystate(config, context, intent);
-            	}
-            	Log.d("TeaCup", "receiver done");
+            	
+            	
+                if (player.getMetaChangedAction().equals(action)) {
+                    UpdateMetaArgs args = new UpdateMetaArgs();
+                    args.config = config;
+                    args.context = context;
+                    args.intent = intent;
+                	if (previousMeta != null) 
+                		previousMeta.cancel(true);
+                	previousMeta = new UpdateMetaTask();
+                	previousMeta.execute(args);
+                }
+                	
+                if (player.getPlaystateChangedAction().equals(action)) {
+                	updatePlaystate(config, context, intent);
+                }            	
+            }
+        };
+        registerReceiver(receiver, filter);	
+    }
+
+
+    private void updatePlaystate(Config config,
+                                 Context context,
+                                 Intent intent) {
+    	try {
+    		Bitmap playButton = getPlayButton(config, context, intent);
+    		updateWidget(context, playButton);
+    	} catch (Exception e) {
+    		Log.e("TeaCup", "Error updating playstate.", e);
+    	}
+    }
+    
+    private Bitmap getPlayButton(Config config,
+            Context context,
+            Intent intent) {
+    	String playState = config.getPlayer().getPlaystateChangedPlaying();
+    	boolean playing = intent.getBooleanExtra(playState, false);
+    	int imgId = playing ? R.drawable.ic_pause : R.drawable.ic_play;
+    	return BitmapFactory.decodeResource(context.getResources(), imgId);
+    }
+    
+    private void updateWidget(Context context,
+                              Bitmap playButton) {
+    	AppWidgetManager appWidgetManager
+    		= AppWidgetManager.getInstance(context);
+    	RemoteViews views = new RemoteViews(context.getPackageName(),
+                                            R.layout.teacup);
+
+    	views.setImageViewBitmap(R.id.playPauseButton, playButton);
+
+    	ComponentName thisWidget = new ComponentName(context, TeaCup.class);
+    	appWidgetManager.updateAppWidget(thisWidget, views);
+    }
+
+    
+    private class UpdateMetaArgs {
+    	Config config;
+    	Context context;
+    	Intent intent;
+    }
+
+
+    private class UpdateMetaTask extends AsyncTask<UpdateMetaArgs, Void, Void> {
+
+    	protected Void doInBackground(UpdateMetaArgs... args) {
+    		try {
+            	updateMeta(args[0].config, args[0].context, args[0].intent);
             } catch (Exception e) {
-            	Log.e("TeaCupReceiver", e.toString());
+            	Log.e("TeaCupReceiver", "Error updating meta.", e);
             }
             return null;
     	}
@@ -146,21 +178,7 @@ public class TeaCupService extends Service {
             updateWidget(context, artist, title, artBmp);
         }
 
-        private void updatePlaystate(Config config,
-                                     Context context,
-                                     Intent intent) {
-            Bitmap playButton = getPlayButton(config, context, intent);
-            updateWidget(context, playButton);
-        }
 
-        private Bitmap getPlayButton(Config config,
-                                     Context context,
-                                     Intent intent) {
-        	String playState = config.getPlayer().getPlaystateChangedPlaying();
-            boolean playing = intent.getBooleanExtra(playState, false);
-            int imgId = playing ? R.drawable.ic_pause : R.drawable.ic_play;
-            return BitmapFactory.decodeResource(context.getResources(), imgId);
-        }
 
         private Bitmap getArtBmp(MetaData meta,
                                  Config config,
@@ -296,21 +314,6 @@ public class TeaCupService extends Service {
             
             // better if we used a later API where we can guarantee serial in order 
             // execution of the async task, but just this check should be good enough
-            if (!isCancelled())
-            	appWidgetManager.updateAppWidget(thisWidget, views);
-        }
-
-        private void updateWidget(Context context,
-                                  Bitmap playButton) {
-            AppWidgetManager appWidgetManager
-                = AppWidgetManager.getInstance(context);
-            RemoteViews views = new RemoteViews(context.getPackageName(),
-                                                R.layout.teacup);
-
-            views.setImageViewBitmap(R.id.playPauseButton, playButton);
-
-            ComponentName thisWidget = new ComponentName(context, TeaCup.class);
-            
             if (!isCancelled())
             	appWidgetManager.updateAppWidget(thisWidget, views);
         }
