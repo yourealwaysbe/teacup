@@ -56,13 +56,6 @@
             </intent-filter>
         </receiver>
         
-        <receiver android:name="TestReceiver">
-            <intent-filter>
-                <action android:name="com.android.music.metachanged" />
-                <action android:name="com.android.music.playstatechanged" />
-            </intent-filter>
-        </receiver>
-        
     </application>
     
 

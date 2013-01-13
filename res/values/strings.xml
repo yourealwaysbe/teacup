@@ -1,15 +1,22 @@
 <resources>
 
     <string name="app_name">TeaCup</string>
+    
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    
     <string name="notitle">It\'s oh so quiet.</string>
     <string name="albumArtDesc">Album Art.</string>
     
-    <string name="lastFMCacheDesc">Cache album art</string>
+    <string name="lastFMCacheDesc">Cache Last FM album art</string>
     <string name="lastFMCacheStyle">Cache directory</string>
     <string name="lastFMCacheNone">Don\'t cache album art</string>
 	<string name="lastFMCacheInDir">Cache in specified directory</string>
     <string name="lastFMCacheWithMusic">Cache in music file directory</string>
-	
+    <string name="lastFMPrefetchAlbumArt">Prefetch Album Art</string>
+    <string name="lastFMPrefetchAlbumArtNoConnection">Prefetch Album Art\n(No Connection)</string>
+    <string name="lastFMPrefetchAlbumArtAgain">Fetch Again</string>
+    
     <string name="playPauseDesc">Play/Pause.</string>
     <string name="noartist">Shh!</string>
     <string name="jumpNextDesc">Jump to next track.</string>
@@ -24,7 +31,9 @@
     <string name="playerSelectDesc">Choose music player</string>
     <string name="playerSelected">Android Player</string>
     <string name="selectPlayerDesc">The music application for the widget.</string>
-
+	<string name="androidplayer">Android Player</string>
+    <string name="customplayer">Custom Player</string>
+	
     <string name="metaChangedAction">Metadata changed intent</string>
     <string name="metaChangedId">Metadata changed track ID field.</string>
     <string name="metaChangedActionHint">The action broadcast by your music player when the track metadata changes.</string>

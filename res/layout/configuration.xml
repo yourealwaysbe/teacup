@@ -7,7 +7,8 @@
     tools:context=".TeaCupConfiguration" >
 <RelativeLayout
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:gravity="center_horizontal">
     <TextView
         android:id="@+id/albumArtSelect"
         android:layout_width="match_parent"
@@ -129,15 +130,40 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="textUri"
-        android:layout_below="@+id/selectLastFMCacheRadioGroup"
+        android:layout_below="@id/selectLastFMCacheRadioGroup"
         android:visibility="gone"
         android:hint="@string/lastFMDirectoryHint" />
+    
+    <LinearLayout
+        android:id="@+id/prefetchOptions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/lastFMDirectory"
+        android:orientation="vertical"
+        android:gravity="center">
+    	<Button
+        	android:id="@+id/prefetchLastFMArt"
+        	android:layout_width="200dp"
+        	android:layout_height="wrap_content"
+			android:text="@string/lastFMPrefetchAlbumArt"
+        	android:onClick="onClickPrefetchLastFMArt" />
 
+    	<ProgressBar 
+        	android:id="@+id/prefetchProgressBar"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:max="100"
+        	style="@android:style/Widget.ProgressBar.Horizontal"
+        	android:visibility="gone"
+        	android:progress="0"
+        	android:indeterminate="false"/>
+    </LinearLayout>
+    	
     <LinearLayout
         android:id="@+id/playerSelectedLine"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/lastFMDirectory"
+        android:layout_below="@id/prefetchOptions"
         android:clickable="true"
         android:onClick="onClickSelectPlayer" >
 
@@ -186,14 +212,14 @@
             android:id="@+id/androidPlayer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Android Player"
+            android:text="@string/androidplayer"
             android:onClick="onClickPlayerSelectRadioGroup" />
 
        <RadioButton
             android:id="@+id/customPlayer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Custom Player"
+            android:text="@string/customplayer"
             android:onClick="onClickPlayerSelectRadioGroup" />
     </RadioGroup>
 
@@ -448,12 +474,12 @@
                android:layout_weight="1"
                android:layout_height="wrap_content"
                android:id="@+id/okbutton"
-               android:text="OK"></Button>
+               android:text="@string/ok"></Button>
 
        <Button android:layout_width="0dp"
                android:layout_weight="1"
                android:layout_height="wrap_content"
-               android:text="Cancel"
+               android:text="@string/cancel"
                android:id="@+id/cancelbutton"></Button>
     </LinearLayout>
 

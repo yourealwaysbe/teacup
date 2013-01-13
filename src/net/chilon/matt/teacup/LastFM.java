@@ -13,13 +13,20 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
 import org.xmlpull.v1.XmlPullParserException;
 
+import android.content.ContentResolver;
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.provider.MediaStore;
 import android.util.Log;
 
 public class LastFM {
+	
+	public static final int PREFETCH_OK = 0;
+	public static final int PREFETCH_NOCONNECTION = 1;
+	public static final int PREFETCH_CANCELLED = 2;
 	
 	private static final int URL_TIMEOUT = 5000;
 	
@@ -61,6 +68,48 @@ public class LastFM {
 		}
 			
 		return artBmp;
+	}
+	
+	public static int prefetchArt(Context context, 
+			                      Config config, 
+			                      ProgressUpdater progress) {
+		if (shouldConnect(config,  context)) {
+			String projection[] = {
+				MediaStore.Audio.Media.ARTIST,
+				MediaStore.Audio.Media.ALBUM,
+				MediaStore.Audio.Media.DATA
+			};
+			String selection = "";
+			ContentResolver resolver = context.getContentResolver();
+			Cursor result = resolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+					                       projection,
+	                                       selection,
+	                                       null,
+	                                       null);
+	        
+			int count = result.getCount();
+			int done = 0;
+			result.moveToFirst();
+			while (!result.isAfterLast() && !progress.getCancelled()) {
+				String artist = result.getString(0);
+				String album = result.getString(1);
+				String filename = result.getString(2);
+	    	
+				getArt(context, config, artist, album, filename);
+	    	
+				++done;
+				progress.setProgressPercent((100*done)/count);
+	    	
+				result.moveToNext();
+			}
+			
+			if (progress.getCancelled())
+				return PREFETCH_CANCELLED;
+			else 
+				return PREFETCH_OK;
+		} else {
+			return PREFETCH_NOCONNECTION;
+		}
 	}
 	
 	private static void cacheBitmap(Config config,

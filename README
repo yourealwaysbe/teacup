@@ -1,8 +1,12 @@
 
 A simple desktop music widget for Android works with stock player by default but
-allows configuration for (hopefully) any player.  Shows embedded art or else any
-image file in the same directory as the track file (configurable), play, prev,
-next buttons.  Press album art to open the music player.
+allows configuration for (hopefully) any player.  
+
+Play, prev, next buttons.  Press album art to open the music player.
+
+Configurable album art options: get embedded art, images in the same directory
+as the music file, or fetch album art from Last FM.  Can also pre-fetch album
+art from Last FM.
 
 Written and tested for Android 2.3.3 (Android 10) on a Samsung Galaxy Mini 2,
 but seems to compile and work in emulators for 4.2 (Android 17).

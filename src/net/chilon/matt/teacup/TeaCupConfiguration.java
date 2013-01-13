@@ -5,13 +5,14 @@ import android.app.Activity;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -21,6 +22,8 @@ public class TeaCupConfiguration extends Activity {
     private TeaCupConfiguration self = this;
 
     private int teaCupId;
+    
+    private PrefetchLastFMArtTask prefetcher = null;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,6 +67,8 @@ public class TeaCupConfiguration extends Activity {
                 Intent resultValue = new Intent();
                 resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
                                      teaCupId);
+                
+                stopPrefetchLastFMAlbumArt();
 
                 setResult(RESULT_CANCELED, resultValue);
                 finish();
@@ -125,6 +130,7 @@ public class TeaCupConfiguration extends Activity {
     	RadioGroup styleGroup = (RadioGroup) findViewById(R.id.selectLastFMCacheRadioGroup);    	
     	View lastFMCacheDir = (View) findViewById(R.id.lastFMDirectory);
     	View cacheLine = (View) findViewById(R.id.lastFMCacheLine);
+    	View prefetchOptions = (View) findViewById(R.id.prefetchOptions);
 		    	
     	if (wifi.isChecked() || network.isChecked()) {
     		int styleId = styleGroup.getCheckedRadioButtonId();
@@ -137,10 +143,16 @@ public class TeaCupConfiguration extends Activity {
         	TextView cacheStyle = (TextView) findViewById(R.id.lastFMCacheStyle);
         	RadioButton styleButton = (RadioButton) findViewById(styleId);
         	cacheStyle.setText(styleButton.getText());
+        	
+        	if (styleId != R.id.lastFMCacheNone)
+        		prefetchOptions.setVisibility(View.VISIBLE);
+        	else
+        		prefetchOptions.setVisibility(View.GONE);
     	} else {
-    		Log.d("TeaCup", "huh");
     		cacheLine.setVisibility(View.GONE);
     		lastFMCacheDir.setVisibility(View.GONE);
+    		prefetchOptions.setVisibility(View.GONE);
+    		stopPrefetchLastFMAlbumArt();
     	}
     }
 
@@ -153,8 +165,102 @@ public class TeaCupConfiguration extends Activity {
     	onClickLastFMArt();
     }
     
+    public void onClickPrefetchLastFMArt(View view) {
+    	
+    	if (prefetcher != null) {
+    		Log.d("TeaCup", "prefetch status: " + prefetcher.getStatus());
+    		Log.d("TeaCup", "is cancelled: " + prefetcher.isCancelled());
+    	}
+    	
+    	if (prefetcher == null || 
+    		prefetcher.isDone()) {
+    		startPrefetchLastFMAlbumArt();
+    	} else {
+    		stopPrefetchLastFMAlbumArt();
+    	}
+    }
+    
     private void onClickLastFMArt() {
     	adjustLastFMVisibility();
     }
 
+    private void startPrefetchLastFMAlbumArt() {
+    	ProgressBar progress = (ProgressBar) findViewById(R.id.prefetchProgressBar);
+    	Button prefetchButton = (Button) findViewById(R.id.prefetchLastFMArt);
+    		
+    	progress.setVisibility(View.VISIBLE);
+    	prefetchButton.setText(R.string.cancel);
+    	    	
+    	if (prefetcher != null && 
+    		!prefetcher.isDone()) {
+    		stopPrefetchLastFMAlbumArt();
+    	} else {
+    		Config config = new Config(self);
+    		prefetcher = new PrefetchLastFMArtTask();
+    		prefetcher.execute(config);
+    	}
+    }
+    
+    private void stopPrefetchLastFMAlbumArt() {
+    	if (prefetcher != null) {
+    		prefetcher.cancel(true);
+    	}
+    }
+
+    
+
+    private class PrefetchLastFMArtTask extends AsyncTask<Config, Integer, Integer>
+                                        implements ProgressUpdater {
+    	boolean done = false;
+    	
+    	protected Integer doInBackground(Config... configs) {
+    		return LastFM.prefetchArt(self, configs[0], this);
+    	}
+    	
+    	protected void onPostExecute(Integer result) {
+    		
+    		Button prefetchButton = (Button) findViewById(R.id.prefetchLastFMArt);
+    		if (result == LastFM.PREFETCH_NOCONNECTION)
+    			prefetchButton.setText(R.string.lastFMPrefetchAlbumArtNoConnection);
+    		else
+    			prefetchButton.setText(R.string.lastFMPrefetchAlbumArtAgain);
+    		setProgressPercent(100);
+    		done = true;
+    	}
+    	    	
+    	protected void onProgressUpdate(Integer... percents) {
+    		ProgressBar progress = (ProgressBar) findViewById(R.id.prefetchProgressBar);
+    		progress.setProgress(percents[0]);    		
+    	}
+    	
+    	protected void onCancelled() {
+    		doCancel();
+    	}
+    	
+    	protected void onCancelled(Integer result) {
+    		doCancel();
+    	}
+  
+    	private void doCancel() {
+    		ProgressBar progress = (ProgressBar) findViewById(R.id.prefetchProgressBar);
+    		Button prefetchButton = (Button) findViewById(R.id.prefetchLastFMArt);
+    		
+        	progress.setVisibility(View.GONE);
+        	prefetchButton.setText(R.string.lastFMPrefetchAlbumArt);
+        	
+        	done = true;
+    	}
+    	
+    	public void setProgressPercent(int percent) {
+    		publishProgress(percent);
+    	}
+    	
+    	public boolean getCancelled() {
+    		return isCancelled();
+    	}
+    	
+    	public boolean isDone() {
+    		return done;
+    	}
+    }
 }
