@@ -16,12 +16,11 @@ PERMISSIONS:
 
     The widget needs permission to know when your phone has just booted up.
     This is so it can start a service (if there's a widget on the home screen)
-    that listens for changes to the media state.
+    that listens for changes to the media state and does the updating
+    asynchronously.
 
-    (In simple cases, a service isn't needed for this functionality, but because
-    TeaCup allows the user to configure which actions to listen for, a dynamic
-    receiver is needed, and hence a service is needed to set it up and look
-    after it. (It's callbacks, not polling, in case you were worried...))
+    It also needs network access for downloading from Last FM (if enabled) and
+    to be able to write files (to store cached album art).
 
 
 CONFIGURATION:
