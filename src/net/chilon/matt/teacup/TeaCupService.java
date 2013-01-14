@@ -74,6 +74,7 @@ public class TeaCupService extends Service {
         IntentFilter filter = new IntentFilter();
         filter.addAction(config.getPlayer().getMetaChangedAction());
         filter.addAction(config.getPlayer().getPlaystateChangedAction());
+        filter.addAction("com.android.music.queuechanged");
         
         receiver = new BroadcastReceiver() {
             @Override
@@ -82,7 +83,6 @@ public class TeaCupService extends Service {
             	Config config = new Config(context);
             	PlayerConfig player = config.getPlayer();
             	String action = intent.getAction();
-            	
             	
                 if (player.getMetaChangedAction().equals(action)) {
                     UpdateMetaArgs args = new UpdateMetaArgs();
@@ -97,10 +97,10 @@ public class TeaCupService extends Service {
                 	
                 if (player.getPlaystateChangedAction().equals(action)) {
                 	updatePlaystate(config, context, intent);
-                }            	
+                }                
             }
         };
-        registerReceiver(receiver, filter);	
+        registerReceiver(receiver, filter);
     }
 
 

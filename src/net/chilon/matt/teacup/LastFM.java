@@ -158,11 +158,11 @@ public class LastFM {
 		return artBmp;
 	}
 		
-	private static void cacheBitmap(Config config,
-			                        String artist,
-			                        String album,
-			                        String filename,
-			                        Bitmap artBmp) {
+	private synchronized static void cacheBitmap(Config config,
+			                                     String artist,
+			                                     String album,
+			                                     String filename,
+			                                     Bitmap artBmp) {
 		try {
 			String directory = getCacheDir(config, filename);
 			File dir = new File(directory);
@@ -186,10 +186,10 @@ public class LastFM {
 		}
 	}
 	
-	private static Bitmap getCachedArt(Config config, 
-			                           String artist, 
-			                           String album,
-			                           String filename) {
+	private synchronized static Bitmap getCachedArt(Config config, 
+			                                        String artist, 
+			                                        String album,
+			                                        String filename) {
 		String imageName = getCacheDir(config,  filename) +
 				           File.separator +
 				           getCacheFileName(artist, album);
@@ -226,7 +226,8 @@ public class LastFM {
 			String artUrl = getArtUrl(artist, album);
 			if (artUrl != null) {
 				try {
-					InputStream is = makeRequest(new URL(artUrl));
+					URLConnection url = makeRequest(new URL(artUrl));
+					InputStream is = url.getInputStream();
 					artBmp = AlbumArtFactory.readStream(is);
 				} catch (MalformedURLException e) {
 					Log.e("TeaCup", "LastFM produced a malformed url!" + artUrl);
@@ -283,7 +284,8 @@ public class LastFM {
 			String webAlbum = URLEncoder.encode(album, "UTF-8");			
 			
 			URL url = new URL(String.format(URL_TEMPLATE, webArtist, webAlbum));
-			InputStream is = makeRequest(url);
+			URLConnection ucon = makeRequest(url);
+			InputStream is = ucon.getInputStream();
 			
 			xpp.setInput(is, null);
         
@@ -317,7 +319,7 @@ public class LastFM {
         return null;
 	}
 	
-	private synchronized static InputStream makeRequest(URL url) 
+	private synchronized static URLConnection makeRequest(URL url) 
 				throws IOException, InterruptedException {
 		
 		if (timeSliceBegin < 0)
@@ -339,6 +341,6 @@ public class LastFM {
 		URLConnection ucon = url.openConnection();
 		ucon.setConnectTimeout(URL_TIMEOUT);
 		ucon.setReadTimeout(URL_TIMEOUT);
-		return ucon.getInputStream();
+		return ucon;
 	}
 }

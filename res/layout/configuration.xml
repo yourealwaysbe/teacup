@@ -462,7 +462,7 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/buttonsLayout"
+        android:id="@+id/okCancelLine"
         android:layout_width="match_parent"
         android:gravity="center"
         android:layout_below="@id/customPlayerOptions"
@@ -481,6 +481,22 @@
                android:layout_height="wrap_content"
                android:text="@string/cancel"
                android:id="@+id/cancelbutton"></Button>
+    </LinearLayout>
+    
+    <LinearLayout
+        android:id="@+id/lastFMLegalLine"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/okCancelLine"
+        android:orientation="horizontal">
+        
+        <TextView
+            android:id="@+id/lastFMLegalText"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="@string/lastFMLegalText" />
+        
     </LinearLayout>
 
 </RelativeLayout>
