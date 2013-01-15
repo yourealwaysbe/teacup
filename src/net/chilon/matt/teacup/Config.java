@@ -33,6 +33,11 @@ public class Config {
     private static final String GET_LASTFM_ART_NETWORK = "getLastFMArtNetwork";
     private static final String LASTFM_CACHE_STYLE = "lastFMCacheStyle";
     private static final String LASTFM_DIRECTORY = "lastFMDirectory";
+    private static final String LASTFM_SCROBBLE_WIFI = "lastFMScrobbleWifi";
+    private static final String LASTFM_SCROBBLE_NETWORK = "lastFMScrobbleNetwork";
+    private static final String LASTFM_SCROBBLE_CACHE = "lastFMScrobbleCache";
+    private static final String LASTFM_USERNAME = "lastFMUserName";
+    private static final String LASTFM_PASSWORD = "lastFMPassword";
     private static final String SELECTED_PLAYER_ID = "selectedPlayerId";
     private static final String PLAYER_PACKAGE = "playerPackage";
     private static final String META_CHANGED_ACTION = "metaChangedAction";
@@ -60,6 +65,11 @@ public class Config {
     private static final String DEFAULT_LASTFM_DIRECTORY = Environment.getExternalStorageDirectory().getPath() +
     		                                               File.separator + 
     		                                               ".teacup";
+    private static final boolean DEFAULT_LASTFM_SCROBBLE_WIFI = false;
+    private static final boolean DEFAULT_LASTFM_SCROBBLE_NETWORK = false;
+    private static final boolean DEFAULT_LASTFM_SCROBBLE_CACHE = false;
+    private static final String DEFAULT_LASTFM_USERNAME = "";
+    private static final String DEFAULT_LASTFM_PASSWORD = "";
     private static final int DEFAULT_SELECTED_PLAYER_ID = DEFAULT_PLAYER_ID;
     private static final String DEFAULT_PLAYER_NAME = ANDROID_PLAYER_NAME;
     private static final String DEFAULT_PLAYER_PACKAGE = "com.android.music";
@@ -107,6 +117,12 @@ public class Config {
     private boolean getLastFMArtNetwork = DEFAULT_GET_LASTFM_ART_NETWORK;
     private int lastFMCacheStyle = DEFAULT_LASTFM_CACHE_STYLE;
     private String lastFMDirectory = DEFAULT_LASTFM_DIRECTORY;
+    private boolean lastFMScrobbleWifi = DEFAULT_LASTFM_SCROBBLE_WIFI;
+    private boolean lastFMScrobbleNetwork = DEFAULT_LASTFM_SCROBBLE_NETWORK;
+    private boolean lastFMScrobbleCache = DEFAULT_LASTFM_SCROBBLE_CACHE;
+    private String lastFMUserName = DEFAULT_LASTFM_USERNAME;
+    private String lastFMPassword = DEFAULT_LASTFM_PASSWORD;
+
     private PlayerConfig customPlayer = defaultPlayers.get(R.id.androidPlayer);
     private int selectedPlayerId = DEFAULT_SELECTED_PLAYER_ID;
 
@@ -122,9 +138,14 @@ public class Config {
         this.getLastFMArtNetwork = getCheckedValue(activity, R.id.getLastFMArtNetwork);
         this.lastFMCacheStyle = getCacheRadioGroupValue(activity);
         this.lastFMDirectory = getEditValue(activity, R.id.lastFMDirectory);
-        selectedPlayerId = getPlayerRadioGroupId(activity);
+        this.lastFMScrobbleWifi = getCheckedValue(activity, R.id.lastFMScrobbleWifi);
+        this.lastFMScrobbleNetwork = getCheckedValue(activity, R.id.lastFMScrobbleNetwork);
+        this.lastFMScrobbleCache = getCheckedValue(activity, R.id.lastFMScrobbleCache);
+        this.lastFMUserName = getEditValue(activity, R.id.lastFMUserName);
+        this.lastFMPassword = getEditValue(activity, R.id.lastFMPassword);
+        this.selectedPlayerId = getPlayerRadioGroupId(activity);
 
-        customPlayer =
+        this.customPlayer =
             new PlayerConfig(R.id.customPlayer,
                              CUSTOM_PLAYER_NAME,
                              getEditValue(activity, R.id.playerPackage),
@@ -152,6 +173,11 @@ public class Config {
         getLastFMArtNetwork = prefs.getBoolean(GET_LASTFM_ART_NETWORK, DEFAULT_GET_LASTFM_ART_NETWORK);
         lastFMCacheStyle = prefs.getInt(LASTFM_CACHE_STYLE, DEFAULT_LASTFM_CACHE_STYLE);
         lastFMDirectory = prefs.getString(LASTFM_DIRECTORY, DEFAULT_LASTFM_DIRECTORY);
+        lastFMScrobbleWifi = prefs.getBoolean(LASTFM_SCROBBLE_WIFI, DEFAULT_LASTFM_SCROBBLE_WIFI);
+        lastFMScrobbleNetwork = prefs.getBoolean(LASTFM_SCROBBLE_NETWORK, DEFAULT_LASTFM_SCROBBLE_NETWORK);
+        lastFMScrobbleCache = prefs.getBoolean(LASTFM_SCROBBLE_CACHE, DEFAULT_LASTFM_SCROBBLE_CACHE);
+        lastFMUserName = prefs.getString(LASTFM_USERNAME, DEFAULT_LASTFM_USERNAME);
+        lastFMPassword = prefs.getString(LASTFM_PASSWORD, DEFAULT_LASTFM_PASSWORD);
         selectedPlayerId = prefs.getInt(SELECTED_PLAYER_ID, DEFAULT_SELECTED_PLAYER_ID);
         
         customPlayer
@@ -201,6 +227,31 @@ public class Config {
         return getPlayer(selectedPlayerId);
     }
 
+
+    public boolean getLastFMScrobbleWifi() {
+        return lastFMScrobbleWifi;
+    }
+
+
+    public boolean getLastFMScrobbleNetwork() {
+        return lastFMScrobbleNetwork;
+    }
+
+
+    public boolean getLastFMScrobbleCache() {
+        return lastFMScrobbleCache;
+    }
+
+
+    public String getLastFMUserName() {
+        return lastFMUserName;
+    }
+
+
+    public String getLastFMPassword() {
+        return lastFMPassword;
+    }
+
     public void writeConfigToSharedPreferences(Context context) {
         SharedPreferences prefs = context.getSharedPreferences("prefs", 0);
         SharedPreferences.Editor edit = prefs.edit();
@@ -211,6 +262,11 @@ public class Config {
         edit.putBoolean(GET_LASTFM_ART_NETWORK, getLastFMArtNetwork);
         edit.putInt(LASTFM_CACHE_STYLE, lastFMCacheStyle);
         edit.putString(LASTFM_DIRECTORY,  lastFMDirectory);
+        edit.putBoolean(LASTFM_SCROBBLE_WIFI, lastFMScrobbleWifi);
+        edit.putBoolean(LASTFM_SCROBBLE_NETWORK, lastFMScrobbleNetwork);
+        edit.putBoolean(LASTFM_SCROBBLE_CACHE, lastFMScrobbleCache);
+        edit.putString(LASTFM_USERNAME, lastFMUserName);
+        edit.putString(LASTFM_PASSWORD, lastFMPassword);
         edit.putInt(SELECTED_PLAYER_ID, selectedPlayerId);
         edit.putString(PLAYER_PACKAGE, customPlayer.getPlayerPackage());
         edit.putString(META_CHANGED_ACTION, customPlayer.getMetaChangedAction());
@@ -238,6 +294,11 @@ public class Config {
         setCheckedValue(activity, R.id.getLastFMArtNetwork, getLastFMArtNetwork);
         setCacheRadioGroupValue(activity, lastFMCacheStyle);
         setEditValue(activity, R.id.lastFMDirectory, lastFMDirectory);
+        setCheckedValue(activity, R.id.lastFMScrobbleWifi, lastFMScrobbleWifi);
+        setCheckedValue(activity, R.id.lastFMScrobbleNetwork, lastFMScrobbleNetwork);
+        setCheckedValue(activity, R.id.lastFMScrobbleCache, lastFMScrobbleCache);
+        setEditValue(activity, R.id.lastFMUserName, lastFMUserName);
+        setEditValue(activity, R.id.lastFMPassword, lastFMPassword);
         setPlayerRadioGroupId(activity, selectedPlayerId);
         setTextValue(activity, R.id.playerSelected, getPlayer(selectedPlayerId).getName());
         setEditValue(activity, R.id.playerPackage, customPlayer.getPlayerPackage());

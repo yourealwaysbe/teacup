@@ -22,12 +22,13 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.content.SharedPreferences;
 
 public class LastFM {
 	
-	public static final int PREFETCH_OK = 0;
-	public static final int PREFETCH_NOCONNECTION = 1;
-	public static final int PREFETCH_CANCELLED = 2;
+    public enum PrefetchState {
+        OK, NOCONNECTION, CANCELLED
+    }
 	
 	private static final int URL_TIMEOUT = 5000;
 	
@@ -60,7 +61,22 @@ public class LastFM {
 	
 	private static long timeSliceBegin = -1;
 	private static int numRequests = 0;
+
+
+    // Scrobbling
+	private enum ScrobbleType {
+		NOSCROBBLE, SCROBBLE, CACHE
+	};
 	
+	
+    private static final String PREFS_FILE = "lastfm";
+    private static final String CUR_TRACK_ARTIST = "track-artist";
+    private static final String CUR_TRACK_TITLE = "track-title";
+    private static final String CUR_TRACK_BEGAN = "track-began";
+    private static final String CUR_TRACK_TOTAL_TIME = "track-total-time";
+    private static final long FOUR_MINUTES = 240000;
+    private static final long THIRTY_SECONDS = 30000;
+
 	public static Bitmap getArt(Context context,
 			                    Config config, 
 			                    String artist, 
@@ -88,11 +104,11 @@ public class LastFM {
 		return artBmp;
 	}
 	
-	public static int prefetchArt(Context context, 
-			                      Config config, 
-			                      ProgressUpdater progress) {
+	public static PrefetchState prefetchArt(Context context, 
+			                                Config config, 
+			                                ProgressUpdater progress) {
 		try {
-			if (shouldConnect(config,  context)) {
+			if (shouldConnectArt(config,  context)) {
 				String projection[] = {
 					MediaStore.Audio.Media.ARTIST,
 					MediaStore.Audio.Media.ALBUM,
@@ -127,18 +143,120 @@ public class LastFM {
 				}
 			
 				if (progress.getCancelled())
-					return PREFETCH_CANCELLED;
+					return PrefetchState.CANCELLED;
 				else 
-					return PREFETCH_OK;
+					return PrefetchState.OK;
 			} else {
-				return PREFETCH_NOCONNECTION;
+				return PrefetchState.NOCONNECTION;
 			}
 		} catch (InterruptedException e) {
 			Log.w("TeaCup", "Last FM prefetch interrupted.", e);
-			return PREFETCH_CANCELLED;
+			return PrefetchState.CANCELLED;
 		}
 	}
 
+	
+	public static void scrobbleUpdate(Context context,
+			                          Config config,
+                                      String artist, 
+                                      String title, 
+                                      long trackLen,
+                                      boolean playing) {
+    
+        boolean scrobble = false;
+        String scrobbleArtist = null;
+        String scrobbleTitle = null;
+        long scrobbleTime = 0;
+
+        long now = System.currentTimeMillis();
+        
+		// Update stored data
+		synchronized (LastFM.class) {
+	        SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, 0);
+
+            String curArtist = prefs.getString(CUR_TRACK_ARTIST, "");
+            String curTitle = prefs.getString(CUR_TRACK_TITLE, "");
+            long timeBegan = prefs.getLong(CUR_TRACK_BEGAN, -1);
+
+            if (curArtist != artist || curTitle != title) {
+                long playedFor = now - timeBegan;
+                if (trackLen >= THIRTY_SECONDS && 
+                    (playedFor >= FOUR_MINUTES || 
+                     playedFor >= (trackLen / 2))) {
+
+                    Log.d("TeaCup", "played for " + playedFor);
+
+                    scrobble = true;
+                    scrobbleArtist = curArtist;
+                    scrobbleTitle = curTitle;
+                    scrobbleTime = timeBegan / 1000;
+                }
+
+                SharedPreferences.Editor edit = prefs.edit(); 
+                edit.putString(CUR_TRACK_ARTIST, artist);
+                edit.putString(CUR_TRACK_TITLE, title);
+                if (playing)
+                    edit.putLong(CUR_TRACK_BEGAN, now);
+                edit.commit();
+            } 			
+		}
+
+
+		ScrobbleType scrobbleType = getScrobbleType(context, config);
+
+        switch (scrobbleType) {
+            case NOSCROBBLE: 
+                break;
+            case SCROBBLE:
+                if (scrobble)
+                    scrobbleTrack(scrobbleArtist, 
+                                  scrobbleTitle, 
+                                  scrobbleTime);
+                sendNowPlaying(artist, title);
+            case CACHE:
+                if (scrobble)
+                    cacheScrobble(scrobbleArtist, 
+                                  scrobbleTitle, 
+                                  scrobbleTime);
+        }
+		
+	}
+
+
+    private static ScrobbleType getScrobbleType(Context context, Config config) {
+        boolean wifi = config.getLastFMScrobbleWifi();
+        boolean network = config.getLastFMScrobbleNetwork();
+        boolean cache = config.getLastFMScrobbleCache();
+
+        boolean connect = shouldConnect(context, wifi, network);
+        if (connect)
+            return ScrobbleType.SCROBBLE;
+        else if (cache)
+            return ScrobbleType.CACHE;
+        else
+            return ScrobbleType.NOSCROBBLE;
+    }
+
+
+
+    private static void scrobbleTrack(String artist,
+                                      String title,
+                                      long time) {
+        Log.d("TeaCup", "scrobble " + artist + ", " + title + ", " + time);
+    }
+
+    private static void cacheScrobble(String artist,
+                                      String title,
+                                      long time) {
+        Log.d("TeaCup", "cache " + artist + ", " + title + ", " + time);
+    }
+
+    private static void sendNowPlaying(String artist, String title) {
+        Log.d("TeaCup", "now playing " + artist + ", " + title + ".");
+    }
+
+
+	
 	private static Bitmap getArtUnprotected(Context context,
                                             Config config, 
                                             String artist, 
@@ -222,7 +340,7 @@ public class LastFM {
 			                        String filename) throws InterruptedException {
 		Bitmap artBmp = null;
 		
-		if (shouldConnect(config, context)) {
+		if (shouldConnectArt(config, context)) {
 			String artUrl = getArtUrl(artist, album);
 			if (artUrl != null) {
 				try {
@@ -239,18 +357,26 @@ public class LastFM {
 		
 		return artBmp;
 	}
-	
-	private static boolean shouldConnect(Config config, Context context) {
+
+    private static boolean shouldConnectArt(Config config, Context context) {
 		boolean getLastFMArtWifi = config.getLastFMArtWifi();
         boolean getLastFMArtNetwork = config.getLastFMArtNetwork();
         
+        return shouldConnect(context, 
+                             getLastFMArtWifi, 
+                             getLastFMArtNetwork);
+    }
+	
+	private static boolean shouldConnect(Context context,
+                                         boolean wifiOk,
+                                         boolean networkOK) {
         ConnectivityManager cm = (ConnectivityManager)
         context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
     	NetworkInfo wifiNetwork 
 			= cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
 
-    	if (getLastFMArtWifi &&
+    	if (wifiOk &&
     		wifiNetwork != null &&  
         	wifiNetwork.isConnectedOrConnecting())
     		return true;
@@ -258,7 +384,7 @@ public class LastFM {
     	NetworkInfo mobileNetwork 
 			= cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
     	
-    	if (getLastFMArtNetwork &&
+    	if (networkOK &&
     	    mobileNetwork != null && 
     	    mobileNetwork.isConnectedOrConnecting())
     		return true;
@@ -266,7 +392,7 @@ public class LastFM {
 
     	NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
     	
-    	if (getLastFMArtNetwork &&
+    	if (networkOK &&
 		    activeNetwork != null && 
 		    activeNetwork.isConnectedOrConnecting())
     		return true;
@@ -343,4 +469,5 @@ public class LastFM {
 		ucon.setReadTimeout(URL_TIMEOUT);
 		return ucon;
 	}
+
 }

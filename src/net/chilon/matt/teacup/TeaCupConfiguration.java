@@ -43,6 +43,7 @@ public class TeaCupConfiguration extends Activity {
 
         showHideCustomOptions(config.getPlayer().getPlayerId());
         adjustLastFMVisibility();
+        adjustScrobbleVisibility();
         
         Button ok = (Button) findViewById(R.id.okbutton);
         ok.setOnClickListener(new OnClickListener() {
@@ -194,6 +195,25 @@ public class TeaCupConfiguration extends Activity {
     	}
     }
     
+    
+    public void onClickLastFMScrobbleOptions(View view) {
+        adjustScrobbleVisibility();
+    }
+
+    private void adjustScrobbleVisibility() {
+    	CheckBox wifi = (CheckBox) findViewById(R.id.lastFMScrobbleWifi);
+    	CheckBox network = (CheckBox) findViewById(R.id.lastFMScrobbleNetwork);
+    	CheckBox cache = (CheckBox) findViewById(R.id.lastFMScrobbleCache);
+    	
+    	View authOpts = findViewById(R.id.lastFMAuthentication);
+    	
+    	if (wifi.isChecked() || network.isChecked() || cache.isChecked())
+    		authOpts.setVisibility(View.VISIBLE);
+    	else
+    		authOpts.setVisibility(View.GONE);
+    }
+
+
     private void stopPrefetchLastFMAlbumArt() {
     	if (prefetcher != null) {
     		prefetcher.cancel(true);
@@ -202,18 +222,18 @@ public class TeaCupConfiguration extends Activity {
 
     
 
-    private class PrefetchLastFMArtTask extends AsyncTask<Config, Integer, Integer>
+    private class PrefetchLastFMArtTask extends AsyncTask<Config, Integer, LastFM.PrefetchState>
                                         implements ProgressUpdater {
     	boolean done = false;
     	
-    	protected Integer doInBackground(Config... configs) {
+    	protected LastFM.PrefetchState doInBackground(Config... configs) {
     		return LastFM.prefetchArt(self, configs[0], this);
     	}
     	
-    	protected void onPostExecute(Integer result) {
+    	protected void onPostExecute(LastFM.PrefetchState result) {
     		
     		Button prefetchButton = (Button) findViewById(R.id.prefetchLastFMArt);
-    		if (result == LastFM.PREFETCH_NOCONNECTION)
+    		if (result == LastFM.PrefetchState.NOCONNECTION)
     			prefetchButton.setText(R.string.lastFMPrefetchAlbumArtNoConnection);
     		else
     			prefetchButton.setText(R.string.lastFMPrefetchAlbumArtAgain);

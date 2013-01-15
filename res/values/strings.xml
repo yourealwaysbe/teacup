@@ -18,6 +18,14 @@
     <string name="lastFMPrefetchAlbumArtAgain">Fetch Again</string>
     <string name="lastFMLegalText">Last FM features powered by AudioScrobbler.</string>
     
+    <string name="lastFMScrobbleWifi">Scrobble to Last FM (WiFi)</string>
+    <string name="lastFMScrobbleNetwork">Scrobble to Last FM (Phone network)</string>
+    <string name="lastFMScrobbleCache">Cache scrobble when offline</string>
+    <string name="lastFMUserNameDesc">Last FM Username</string>
+    <string name="lastFMUserNameHint">Your Last FM username.</string>
+    <string name="lastFMPasswordDesc">Last FM password</string>
+    <string name="lastFMPasswordHint">Your Last FM password.</string>
+    
     <string name="playPauseDesc">Play/Pause.</string>
     <string name="noartist">Shh!</string>
     <string name="jumpNextDesc">Jump to next track.</string>

@@ -33,6 +33,7 @@ public class TeaCupService extends Service {
         String album;
         String title;
         String filename;
+        long length;
     }
 
 
@@ -166,6 +167,13 @@ public class TeaCupService extends Service {
             Bitmap artBmp;
 
             if (meta != null) {
+                LastFM.scrobbleUpdate(context,
+                                      config,
+                                      meta.artist, 
+                                      meta.title, 
+                                      meta.length,
+                                      true);
+
                 artBmp = getArtBmp(meta, config, context);
                 artist = meta.artist;
                 title = meta.title;
@@ -275,7 +283,8 @@ public class TeaCupService extends Service {
                     MediaStore.Audio.Media.ARTIST,
                     MediaStore.Audio.Media.ALBUM,
                     MediaStore.Audio.Media.TITLE,
-                    MediaStore.Audio.Media.DATA
+                    MediaStore.Audio.Media.DATA,
+                    MediaStore.Audio.Media.DURATION
                 };
                 String selection = MediaStore.Audio.Media._ID + " = ?";
                 ContentResolver resolver = getContentResolver();
@@ -291,6 +300,7 @@ public class TeaCupService extends Service {
                     meta.album = result.getString(1);
                     meta.title = result.getString(2);
                     meta.filename = result.getString(3);
+                    meta.length = result.getLong(4);
                 }
             }
 

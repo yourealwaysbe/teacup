@@ -159,11 +159,74 @@
         	android:indeterminate="false"/>
     </LinearLayout>
     	
+	<CheckBox 
+	    android:id="@+id/lastFMScrobbleWifi"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_below="@id/prefetchOptions"
+	    android:text="@string/lastFMScrobbleWifi"
+	    android:onClick="onClickLastFMScrobbleOptions"/>    
+
+	<CheckBox 
+	    android:id="@+id/lastFMScrobbleNetwork"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_below="@id/lastFMScrobbleWifi"
+	    android:text="@string/lastFMScrobbleNetwork"
+	    android:onClick="onClickLastFMScrobbleOptions"/>    
+	
+	<CheckBox 
+	    android:id="@+id/lastFMScrobbleCache"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_below="@id/lastFMScrobbleNetwork"
+	    android:text="@string/lastFMScrobbleCache"
+	    android:onClick="onClickLastFMScrobbleOptions"/>    
+	
+	<LinearLayout
+	    android:id="@+id/lastFMAuthentication"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_below="@id/lastFMScrobbleCache"
+	    android:orientation="vertical"
+	    android:visibility="gone">
+	    
+	    <TextView
+	        android:id="@+id/lastFMUserNameDesc"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:text="@string/lastFMUserNameDesc"
+            android:textAppearance="?android:attr/textAppearanceLarge"  />
+	   
+	    <EditText
+	        android:id="@+id/lastFMUserName"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:inputType="text" 
+	        android:hint="@string/lastFMUserNameHint"/>
+	    
+	    <TextView
+	        android:id="@+id/lastFMPasswordDesc"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:text="@string/lastFMPasswordDesc"
+            android:textAppearance="?android:attr/textAppearanceLarge"  />
+	    
+	    <EditText
+	        android:id="@+id/lastFMPassword"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:inputType="textPassword" 
+	        android:hint="@string/lastFMPasswordHint"/>
+	    	    
+	</LinearLayout>
+		
+    
     <LinearLayout
         android:id="@+id/playerSelectedLine"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/prefetchOptions"
+        android:layout_below="@id/lastFMAuthentication"
         android:clickable="true"
         android:onClick="onClickSelectPlayer" >
 
