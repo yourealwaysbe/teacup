@@ -1,15 +1,32 @@
 package net.chilon.matt.teacup;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
 import org.xmlpull.v1.XmlPullParserException;
@@ -39,42 +56,50 @@ public class LastFM {
 
     private static final String GET_ALBUM_INFO = "album.getinfo";
     private static final String GET_MOBILE_SESSION = "auth.getMobileSession";
+    private static final String UPDATE_NOW_PLAYING = "track.updateNowPlaying";
 
 	private static final String API_KEY_ARG = "api_key";
     private static final String API_SIG_ARG = "api_sig";
     private static final String METHOD_ARG = "method";
-
+    private static final String SESSION_KEY_ARG = "sk";
     private static final String USERNAME_ARG = "username";
     private static final String PASSWORD_ARG = "password";
-
 	private static final String ARTIST_ARG = "artist";
 	private static final String ALBUM_ARG = "album";
+    private static final String TRACK_ARG = "track";
 	
 	private static final String IMAGE_TAG = "image";
 	private static final String IMAGE_SIZE = "large";
-	private static final String SIZE_NAMESPACE = "";
-	private static final String SIZE_ATTRIBUTE = "size";
+	private static final String SIZE_ATTR = "size";
+    private static final String LFM_NAMESPACE = "";
+    private static final String LFM_TAG = "lfm";
+    private static final String LFM_STATUS_ATTR = "status";
+    private static final String LFM_STATUS_OK = "ok";
+
+    private static final String KEY_TAG = "key";
 	
 	private static final String ART_TEMPLATE 
         = API_ROOT + "?" +
-	      API_KEY_ARG + "=" + API_KEY "&" +
-	      METHOD + "=" + GET_ALBUM_INFO + "&" +
+	      API_KEY_ARG + "=" + API_KEY + "&" +
+	      METHOD_ARG + "=" + GET_ALBUM_INFO + "&" +
 	      ARTIST_ARG + "=%s&" +
 	      ALBUM_ARG + "=%s";
 
-    private static final String SESSION_TEMPLATE 
-        = SECURE_API_ROOT + "?" +
-          API_KEY_ARG + "=" + API_KEY + "&" +
-          METHOD + "=" + GET_MOBILE_SESSION + "&" +
-          PASSWORD_ARG + "=%s&" +
-          USERNAME_ARG + "=%s&" + 
-          API_SIG_ARG + "=%s";
-
     private static final String SESSION_SIGNATURE_TEMPLATE 
         = API_KEY_ARG + API_KEY + 
-          METHOD + GET_MOBILE_SESSION +
+          METHOD_ARG + GET_MOBILE_SESSION +
           PASSWORD_ARG + "%s" +
-          USERNAME_ARG + "%s";
+          USERNAME_ARG + "%s" +
+          API_SECRET;
+
+    private static final String NOW_PLAYING_SIGNATURE_TEMPLATE
+        = API_KEY_ARG + API_KEY +
+          ARTIST_ARG + "%s" +
+          METHOD_ARG + UPDATE_NOW_PLAYING +
+          SESSION_KEY_ARG + "%s" +
+          TRACK_ARG + "%s" +
+          API_SECRET;
+
 
 	private static final Bitmap.CompressFormat CACHE_TYPE = Bitmap.CompressFormat.PNG;
 	private static final String CACHE_EXT = ".png";
@@ -100,6 +125,9 @@ public class LastFM {
     private static final String CUR_TRACK_TITLE = "track-title";
     private static final String CUR_TRACK_BEGAN = "track-began";
     private static final String CUR_TRACK_TOTAL_TIME = "track-total-time";
+    private static final String SESSION_KEY = "session-key";
+    private static final String SESSION_KEY_USERNAME = "session-key-username";
+    private static final String SESSION_KEY_PASSWORD = "session-key-password";
     private static final long FOUR_MINUTES = 240000;
     private static final long THIRTY_SECONDS = 30000;
 
@@ -188,64 +216,68 @@ public class LastFM {
                                       String title, 
                                       long trackLen,
                                       boolean playing) {
-    
-        boolean scrobble = false;
-        String scrobbleArtist = null;
-        String scrobbleTitle = null;
-        long scrobbleTime = 0;
+        try { 
+            boolean scrobble = false;
+            String scrobbleArtist = null;
+            String scrobbleTitle = null;
+            long scrobbleTime = 0;
 
-        long now = System.currentTimeMillis();
-        
-		// Update stored data
-		synchronized (LastFM.class) {
-	        SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, 0);
+            long now = System.currentTimeMillis();
+            
+            // Update stored data
+            synchronized (LastFM.class) {
+                SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, 0);
 
-            String curArtist = prefs.getString(CUR_TRACK_ARTIST, "");
-            String curTitle = prefs.getString(CUR_TRACK_TITLE, "");
-            long timeBegan = prefs.getLong(CUR_TRACK_BEGAN, -1);
+                String curArtist = prefs.getString(CUR_TRACK_ARTIST, "");
+                String curTitle = prefs.getString(CUR_TRACK_TITLE, "");
+                long timeBegan = prefs.getLong(CUR_TRACK_BEGAN, -1);
 
-            if (curArtist != artist || curTitle != title) {
-                long playedFor = now - timeBegan;
-                if (trackLen >= THIRTY_SECONDS && 
-                    (playedFor >= FOUR_MINUTES || 
-                     playedFor >= (trackLen / 2))) {
+                if (curArtist != artist || curTitle != title) {
+                    long playedFor = now - timeBegan;
+                    if (trackLen >= THIRTY_SECONDS && 
+                        (playedFor >= FOUR_MINUTES || 
+                         playedFor >= (trackLen / 2))) {
 
-                    Log.d("TeaCup", "played for " + playedFor);
+                        Log.d("TeaCup", "played for " + playedFor);
 
-                    scrobble = true;
-                    scrobbleArtist = curArtist;
-                    scrobbleTitle = curTitle;
-                    scrobbleTime = timeBegan / 1000;
-                }
+                        scrobble = true;
+                        scrobbleArtist = curArtist;
+                        scrobbleTitle = curTitle;
+                        scrobbleTime = timeBegan / 1000;
+                    }
 
-                SharedPreferences.Editor edit = prefs.edit(); 
-                edit.putString(CUR_TRACK_ARTIST, artist);
-                edit.putString(CUR_TRACK_TITLE, title);
-                if (playing)
-                    edit.putLong(CUR_TRACK_BEGAN, now);
-                edit.commit();
-            } 			
-		}
+                    SharedPreferences.Editor edit = prefs.edit(); 
+                    edit.putString(CUR_TRACK_ARTIST, artist);
+                    edit.putString(CUR_TRACK_TITLE, title);
+                    if (playing)
+                        edit.putLong(CUR_TRACK_BEGAN, now);
+                    edit.commit();
+                } 			
+            }
 
 
-		ScrobbleType scrobbleType = getScrobbleType(context, config);
+            ScrobbleType scrobbleType = getScrobbleType(context, config);
 
-        switch (scrobbleType) {
-            case NOSCROBBLE: 
-                break;
-            case SCROBBLE:
-                if (scrobble)
-                    scrobbleTrack(scrobbleArtist, 
-                                  scrobbleTitle, 
-                                  scrobbleTime);
-                sendNowPlaying(artist, title);
-            case CACHE:
-                if (scrobble)
-                    cacheScrobble(scrobbleArtist, 
-                                  scrobbleTitle, 
-                                  scrobbleTime);
+            switch (scrobbleType) {
+                case NOSCROBBLE: 
+                    break;
+                case SCROBBLE:
+                    if (scrobble)
+                        scrobbleTrack(context,
+                                      config,
+                                      scrobbleArtist, 
+                                      scrobbleTitle, 
+                                      scrobbleTime);
+                    sendNowPlaying(context, config, artist, title);
+                case CACHE:
+                    if (scrobble)
+                        cacheScrobble(scrobbleArtist, 
+                                      scrobbleTitle, 
+                                      scrobbleTime);
+            }
+	    } catch (InterruptedException e) {
+            Log.w("TeaCup", "updateScrobble interrupted", e);
         }
-		
 	}
 
 
@@ -265,10 +297,17 @@ public class LastFM {
 
 
 
-    private static void scrobbleTrack(String artist,
+    private static void scrobbleTrack(Context context,
+    		                          Config config,
+    		                          String artist,
                                       String title,
-                                      long time) {
-        Log.d("TeaCup", "scrobble " + artist + ", " + title + ", " + time);
+                                      long time) 
+    		throws InterruptedException {
+    	//try {
+    		Log.d("TeaCup", "scrobble " + artist + ", " + title + ", " + time);
+    	//} catch (IOException e) {
+    	//	Log.e("TeaCup", "scrobbleTrack ioexception", e);
+    	//}
     }
 
     private static void cacheScrobble(String artist,
@@ -277,20 +316,94 @@ public class LastFM {
         Log.d("TeaCup", "cache " + artist + ", " + title + ", " + time);
     }
 
-    private static void sendNowPlaying(String artist, String title) {
-        Log.d("TeaCup", "now playing " + artist + ", " + title + ".");
+    private static void sendNowPlaying(Context context, 
+    		                           Config config,
+    		                           String artist, 
+    		                           String title) 
+    		throws InterruptedException {
+    	try {
+    		String sessionKey = getSessionKey(context, config, true);
+
+            String apiSig = String.format(NOW_PLAYING_SIGNATURE_TEMPLATE, 
+                                          artist,
+                                          sessionKey, 
+                                          title);
+            apiSig = md5Hash(apiSig);
+
+            List<NameValuePair> vals = new ArrayList<NameValuePair>(4);
+            vals.add(new BasicNameValuePair(API_KEY_ARG, API_KEY));
+            vals.add(new BasicNameValuePair(API_SIG_ARG, apiSig));
+            vals.add(new BasicNameValuePair(SESSION_KEY_ARG, sessionKey));
+            vals.add(new BasicNameValuePair(METHOD_ARG, UPDATE_NOW_PLAYING));
+            vals.add(new BasicNameValuePair(ARTIST_ARG, artist));
+            vals.add(new BasicNameValuePair(TRACK_ARG, title));
+
+            HttpResponse response = postRequest(SECURE_API_ROOT, vals);
+            boolean ok = lfmIsOK(postRequest(SECURE_API_ROOT, vals));
+            if (!ok) {
+                // retry once with fresh key
+                sessionKey = getSessionKey(context, config, false);
+                vals.add(new BasicNameValuePair(SESSION_KEY_ARG, sessionKey));
+                postRequest(SECURE_API_ROOT, vals);
+            }
+
+    		Log.d("TeaCup", "now playing " + artist + ", " + title + ".");
+    	} catch (IOException e) {
+    		Log.e("TeaCup", "now playing ioexception", e);
+    	}
     }
 
 
-    private static String getSessionKey(Config config) {
+    private static String getSessionKey(Context context, 
+    		                            Config config,
+    		                            boolean tryStoredKey) 
+                throws IOException, InterruptedException {
+        String key = "";
+        String username = config.getLastFMUserName();
+        String password = config.getLastFMPassword();
+        
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, 0);
+       
+        if (tryStoredKey) {
+            String sessionUsername = prefs.getString(SESSION_KEY_USERNAME, "");
+            String sessionPassword = prefs.getString(SESSION_KEY_PASSWORD, "");
+            if (username.equals(sessionUsername) && 
+                password.equals(sessionPassword))
+                key = prefs.getString(SESSION_KEY, "");
+        }
+    
+        // request key 
+        if ("".equals(key)) {
 
-        String url = String.format(SESSION_TEMPLATE,
-                                   config.getLastFMUserName,
-                                   config.getLastFMPassword);
+            String apiSig = String.format(SESSION_SIGNATURE_TEMPLATE, 
+                                          password,
+                                          username);
+            apiSig = md5Hash(apiSig);
+            
+            List<NameValuePair> vals = new ArrayList<NameValuePair>(4);
+            vals.add(new BasicNameValuePair(API_KEY_ARG, API_KEY));
+            vals.add(new BasicNameValuePair(API_SIG_ARG, apiSig));
+            vals.add(new BasicNameValuePair(METHOD_ARG, GET_MOBILE_SESSION));
+            vals.add(new BasicNameValuePair(USERNAME_ARG, username));
+            vals.add(new BasicNameValuePair(PASSWORD_ARG, password));
 
-        String sessionKey = String.format(TODOTODOTODO);
+            HttpResponse response = postRequest(SECURE_API_ROOT, vals);
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                key = grabXmlTag(entity.getContent(), KEY_TAG);
+                if (key != null) {
+                    SharedPreferences.Editor edit = prefs.edit(); 
+                    edit.putString(SESSION_KEY_USERNAME, username);
+                    edit.putString(SESSION_KEY_PASSWORD, password);
+                    edit.putString(SESSION_KEY, key);
+                    edit.commit();
+                } else {
+                    key = "";
+                }
+            }
+        }
 
-        URLConnection ucon = makeRequest(url);
+        return key;
     }
 
 	
@@ -437,18 +550,39 @@ public class LastFM {
     	return false;
 	}
 	
-	private static String getArtUrl(String artist, String album) throws InterruptedException {
+	private static String getArtUrl(String artist, String album) 
+                throws InterruptedException {
 		try {
-			XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
-			factory.setNamespaceAware(false);
-			XmlPullParser xpp = factory.newPullParser();
-			
 			String webArtist = URLEncoder.encode(artist, "UTF-8");
 			String webAlbum = URLEncoder.encode(album, "UTF-8");			
 			
 			URL url = new URL(String.format(ART_TEMPLATE, webArtist, webAlbum));
 			URLConnection ucon = makeRequest(url);
 			InputStream is = ucon.getInputStream();
+
+            return grabXmlTag(is, IMAGE_TAG, SIZE_ATTR, IMAGE_SIZE);
+			
+		} catch (IOException e) {
+			// do nothing
+			Log.d("TeaCup", "ioexception: " + e);
+		}
+        
+        return null;
+	}
+
+    private static String grabXmlTag(InputStream is, 
+                                     String tagName) {
+        return grabXmlTag(is, tagName,  null, null);
+    }
+
+    private static String grabXmlTag(InputStream is,
+                                     String tagName,
+                                     String attrName,
+                                     String attrVal) {
+		try {
+			XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+			factory.setNamespaceAware(false);
+			XmlPullParser xpp = factory.newPullParser();
 			
 			xpp.setInput(is, null);
         
@@ -457,35 +591,102 @@ public class LastFM {
 			while (eventType != XmlPullParser.END_DOCUMENT) {
 				
 				if (eventType == XmlPullParser.START_TAG &&
-						IMAGE_TAG.equals(xpp.getName())) {
-        		
-					int n = xpp.getAttributeCount();
-					for (int i = 0; i < n; ++i) {
-						String size = xpp.getAttributeValue(SIZE_NAMESPACE, SIZE_ATTRIBUTE);
-						if (IMAGE_SIZE.equals(size)) {
-							xpp.next();
-							return xpp.getText();
-						}
-					}
+						tagName.equals(xpp.getName())) {
+                    if (attrName != null) {
+                        String size = xpp.getAttributeValue(LFM_NAMESPACE, attrName);
+                        if (attrVal.equals(size)) {
+                            xpp.next();
+                            return xpp.getText();
+                        }
+                    } else {
+                    	xpp.next();
+                        return xpp.getText();
+                    }
 				}
 				xpp.next();
 				eventType = xpp.getEventType();
 			}
 		} catch (XmlPullParserException e) {
 			// do nothing
-			Log.d("TeaCup", "xmlpullparserexception: " + e);
+			Log.d("TeaCup", "grabXmlTag xmlpullparserexception", e);
 		} catch (IOException e) {
 			// do nothing
-			Log.d("TeaCup", "ioexception: " + e);
+			Log.d("TeaCup", "grabXmlTag ioexception", e);
 		}
-        
+
         return null;
-	}
+    }
+
+    private static boolean lfmIsOK(HttpResponse response) {
+		try {
+            HttpEntity entity = response.getEntity();
+            if (entity == null) 
+                return false;
+
+			XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+			factory.setNamespaceAware(false);
+			XmlPullParser xpp = factory.newPullParser();
+			
+			xpp.setInput(entity.getContent(), null);
+        
+			int eventType = xpp.getEventType();
+        
+			while (eventType != XmlPullParser.END_DOCUMENT) {
+				
+				if (eventType == XmlPullParser.START_TAG &&
+						LFM_TAG.equals(xpp.getName())) {
+                    String size = xpp.getAttributeValue(LFM_NAMESPACE, LFM_STATUS_ATTR);
+                    if (LFM_STATUS_OK.equals(size)) 
+                        return true;
+                    else
+                        return false;
+				}
+				xpp.next();
+				eventType = xpp.getEventType();
+			}
+		} catch (XmlPullParserException e) {
+			// do nothing
+			Log.d("TeaCup", "grabXmlTag xmlpullparserexception", e);
+		} catch (IOException e) {
+			// do nothing
+			Log.d("TeaCup", "grabXmlTag ioexception", e);
+		}
+
+        return false;
+    }
+
 	
-	private synchronized static URLConnection makeRequest(URL url) 
+	private static URLConnection makeRequest(URL url) 
 				throws IOException, InterruptedException {
-		
-		if (timeSliceBegin < 0)
+        waitForRequestPermission();	
+    
+		URLConnection ucon = url.openConnection();
+		ucon.setConnectTimeout(URL_TIMEOUT);
+		ucon.setReadTimeout(URL_TIMEOUT);
+		return ucon;
+	}
+
+    private static HttpResponse postRequest(String url, 
+                                            List<NameValuePair> vals)
+                throws IOException, InterruptedException {
+
+        waitForRequestPermission();
+
+        try {
+            HttpPost post = new HttpPost(url);
+            post.setEntity(new UrlEncodedFormEntity(vals));
+            HttpClient client = new DefaultHttpClient();
+            return client.execute(post);
+        } catch (ClientProtocolException e) {
+            Log.e("TeaCup", "ClientProtocolException -- i guess we did something wrong.");
+            throw new IOException(e);
+        }
+    }
+
+    private synchronized static void waitForRequestPermission() 
+                throws InterruptedException {
+
+    	if (timeSliceBegin < 0)
 			timeSliceBegin = System.currentTimeMillis();
 		
 		long time = System.currentTimeMillis();
@@ -500,11 +701,35 @@ public class LastFM {
 			numRequests = 0;
 			timeSliceBegin = System.currentTimeMillis();
 		}
-		
-		URLConnection ucon = url.openConnection();
-		ucon.setConnectTimeout(URL_TIMEOUT);
-		ucon.setReadTimeout(URL_TIMEOUT);
-		return ucon;
-	}
+    }
+
+    private static String md5Hash(String string) {
+    	String hash = "";
+        try {
+            MessageDigest md5 = MessageDigest.getInstance("MD5");
+            md5.update(string.getBytes("UTF-8"), 0, string.length());
+            BigInteger i = new BigInteger(1,md5.digest());
+            hash = String.format("%1$032x", i);
+        } catch (NoSuchAlgorithmException e) {
+        	Log.e("TeaCup", "md5Hash nosuchalgorithmexception", e);
+        } catch (UnsupportedEncodingException e) {
+        	Log.e("TeaCup", "md5Hash unsupportedencodingexception", e);
+        }
+        return hash;
+    }
+    
+    private static void logIS(InputStream is) {
+    	try {
+    		InputStreamReader ir = new InputStreamReader(is);
+    		BufferedReader br = new BufferedReader(ir);
+    		String read = br.readLine();
+    		while (read != null) {
+    			Log.d("TeaCup", read);
+    			read = br.readLine();
+    		}
+    	} catch (IOException e) {
+    		Log.d("TeaCup", "error logging input stream", e);
+    	}
+    }
 
 }
