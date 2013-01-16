@@ -33,22 +33,48 @@ public class LastFM {
 	private static final int URL_TIMEOUT = 5000;
 	
 	private static final String API_KEY = "d6e802774ce70edfca5d501009377a53";
+    private static final String API_SECRET = "9320d44c69440dfe648bca72140fecb2";
 	private static final String API_ROOT = "http://ws.audioscrobbler.com/2.0/";
-	private static final String GET_ALBUM_INFO = "method=album.getinfo";
-	private static final String API_KEY_ARG = "api_key=" + API_KEY;
-	private static final String ARTIST_ARG = "artist=%s";
-	private static final String ALBUM_ARG = "album=%s";
+	private static final String SECURE_API_ROOT = "https://ws.audioscrobbler.com/2.0/";
+
+    private static final String GET_ALBUM_INFO = "album.getinfo";
+    private static final String GET_MOBILE_SESSION = "auth.getMobileSession";
+
+	private static final String API_KEY_ARG = "api_key";
+    private static final String API_SIG_ARG = "api_sig";
+    private static final String METHOD_ARG = "method";
+
+    private static final String USERNAME_ARG = "username";
+    private static final String PASSWORD_ARG = "password";
+
+	private static final String ARTIST_ARG = "artist";
+	private static final String ALBUM_ARG = "album";
 	
 	private static final String IMAGE_TAG = "image";
 	private static final String IMAGE_SIZE = "large";
 	private static final String SIZE_NAMESPACE = "";
 	private static final String SIZE_ATTRIBUTE = "size";
 	
-	private static final String URL_TEMPLATE = API_ROOT + "?" +
-	                                           GET_ALBUM_INFO + "&" +
-	                                           API_KEY_ARG + "&" +
-	                                           ARTIST_ARG + "&" +
-	                                           ALBUM_ARG;
+	private static final String ART_TEMPLATE 
+        = API_ROOT + "?" +
+	      API_KEY_ARG + "=" + API_KEY "&" +
+	      METHOD + "=" + GET_ALBUM_INFO + "&" +
+	      ARTIST_ARG + "=%s&" +
+	      ALBUM_ARG + "=%s";
+
+    private static final String SESSION_TEMPLATE 
+        = SECURE_API_ROOT + "?" +
+          API_KEY_ARG + "=" + API_KEY + "&" +
+          METHOD + "=" + GET_MOBILE_SESSION + "&" +
+          PASSWORD_ARG + "=%s&" +
+          USERNAME_ARG + "=%s&" + 
+          API_SIG_ARG + "=%s";
+
+    private static final String SESSION_SIGNATURE_TEMPLATE 
+        = API_KEY_ARG + API_KEY + 
+          METHOD + GET_MOBILE_SESSION +
+          PASSWORD_ARG + "%s" +
+          USERNAME_ARG + "%s";
 
 	private static final Bitmap.CompressFormat CACHE_TYPE = Bitmap.CompressFormat.PNG;
 	private static final String CACHE_EXT = ".png";
@@ -256,6 +282,17 @@ public class LastFM {
     }
 
 
+    private static String getSessionKey(Config config) {
+
+        String url = String.format(SESSION_TEMPLATE,
+                                   config.getLastFMUserName,
+                                   config.getLastFMPassword);
+
+        String sessionKey = String.format(TODOTODOTODO);
+
+        URLConnection ucon = makeRequest(url);
+    }
+
 	
 	private static Bitmap getArtUnprotected(Context context,
                                             Config config, 
@@ -409,7 +446,7 @@ public class LastFM {
 			String webArtist = URLEncoder.encode(artist, "UTF-8");
 			String webAlbum = URLEncoder.encode(album, "UTF-8");			
 			
-			URL url = new URL(String.format(URL_TEMPLATE, webArtist, webAlbum));
+			URL url = new URL(String.format(ART_TEMPLATE, webArtist, webAlbum));
 			URLConnection ucon = makeRequest(url);
 			InputStream is = ucon.getInputStream();
 			
