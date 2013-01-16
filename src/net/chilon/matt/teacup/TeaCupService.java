@@ -36,6 +36,11 @@ public class TeaCupService extends Service {
         long length;
     }
 
+    private boolean currentlyPlaying = false;
+    private String currentArtist = null;
+    private String currentTitle = null;
+    private long currentLength = 0;
+
 
     BroadcastReceiver receiver = null;
    
@@ -75,21 +80,22 @@ public class TeaCupService extends Service {
         IntentFilter filter = new IntentFilter();
         filter.addAction(config.getPlayer().getMetaChangedAction());
         filter.addAction(config.getPlayer().getPlaystateChangedAction());
-        filter.addAction("com.android.music.queuechanged");
         
         receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-            	Log.d("TeaCup", "received: " + intent.getAction());
             	Config config = new Config(context);
             	PlayerConfig player = config.getPlayer();
             	String action = intent.getAction();
+            	
+            	Log.d("TeaCup", "received " + action);
             	
                 if (player.getMetaChangedAction().equals(action)) {
                     UpdateMetaArgs args = new UpdateMetaArgs();
                     args.config = config;
                     args.context = context;
                     args.intent = intent;
+                    args.currentlyPlaying = currentlyPlaying;
                 	if (previousMeta != null) 
                 		previousMeta.cancel(true);
                 	previousMeta = new UpdateMetaTask();
@@ -109,32 +115,63 @@ public class TeaCupService extends Service {
                                  Context context,
                                  Intent intent) {
     	try {
-    		Bitmap playButton = getPlayButton(config, context, intent);
-    		updateWidget(context, playButton);
+            String playState = config.getPlayer().getPlaystateChangedPlaying();
+            boolean playing = intent.getBooleanExtra(playState, false);
+    		Bitmap playButton = getPlayButton(currentlyPlaying);
+    		updateWidget(playButton);
+    		
+    		if (currentArtist != null && 
+    			currentTitle != null &&
+    			currentlyPlaying != playing) {
+    			UpdateLastFMArgs args = new UpdateLastFMArgs();
+    			args.config = config;
+    			args.context = context;
+    			args.artist = currentArtist;
+    			args.title = currentTitle;
+    			args.currentlyPlaying = playing;
+    			args.length = currentLength;
+    			new UpdateLastFMTask().execute(args);
+    		}
+    		
+    		currentlyPlaying = playing;
     	} catch (Exception e) {
     		Log.e("TeaCup", "Error updating playstate.", e);
     	}
     }
     
-    private Bitmap getPlayButton(Config config,
-            Context context,
-            Intent intent) {
-    	String playState = config.getPlayer().getPlaystateChangedPlaying();
-    	boolean playing = intent.getBooleanExtra(playState, false);
+    private Bitmap getPlayButton(boolean playing) {
     	int imgId = playing ? R.drawable.ic_pause : R.drawable.ic_play;
-    	return BitmapFactory.decodeResource(context.getResources(), imgId);
+    	return BitmapFactory.decodeResource(getResources(), imgId);
     }
+
+    private void updateWidget(String artist,
+                              String title,
+                              Bitmap artBmp) {
+        AppWidgetManager appWidgetManager
+            = AppWidgetManager.getInstance(this);
+        RemoteViews views = new RemoteViews(getPackageName(),
+                                            R.layout.teacup);
+
+        views.setTextViewText(R.id.artistView, artist);
+        views.setTextViewText(R.id.titleView,  title);
+        if (artBmp != null)
+            views.setImageViewBitmap(R.id.albumArtButton, artBmp);
+
+        ComponentName thisWidget = new ComponentName(this, TeaCup.class);
+        
+        appWidgetManager.updateAppWidget(thisWidget, views);
+    }
+
     
-    private void updateWidget(Context context,
-                              Bitmap playButton) {
+    private void updateWidget(Bitmap playButton) {
     	AppWidgetManager appWidgetManager
-    		= AppWidgetManager.getInstance(context);
-    	RemoteViews views = new RemoteViews(context.getPackageName(),
+    		= AppWidgetManager.getInstance(this);
+    	RemoteViews views = new RemoteViews(getPackageName(),
                                             R.layout.teacup);
 
     	views.setImageViewBitmap(R.id.playPauseButton, playButton);
 
-    	ComponentName thisWidget = new ComponentName(context, TeaCup.class);
+    	ComponentName thisWidget = new ComponentName(this, TeaCup.class);
     	appWidgetManager.updateAppWidget(thisWidget, views);
     }
 
@@ -143,28 +180,71 @@ public class TeaCupService extends Service {
     	Config config;
     	Context context;
     	Intent intent;
+    	boolean currentlyPlaying;
     }
 
 
-    private class UpdateMetaTask extends AsyncTask<UpdateMetaArgs, Void, Void> {
+    private class UpdateInfo {
+        String artist = null;
+        String title = null;
+        long length = 0;
+        Bitmap art = null;
+    }
+
+    private class UpdateMetaTask extends AsyncTask<UpdateMetaArgs, UpdateInfo, Void> {
 
     	protected Void doInBackground(UpdateMetaArgs... args) {
     		try {
-            	updateMeta(args[0].config, args[0].context, args[0].intent);
+            	updateMeta(args[0].config, 
+            			   args[0].context, 
+            			   args[0].intent,
+            			   args[0].currentlyPlaying);
             } catch (Exception e) {
             	Log.e("TeaCupReceiver", "Error updating meta.", e);
             }
             return null;
     	}
 
+    	protected void onProgressUpdate(UpdateInfo... info) {
+            // better if we used a later API where we can guarantee serial in order 
+            // execution of the async task, but just this check should be good enough
+            if (!isCancelled()) {
+            	currentArtist = info[0].artist;
+            	currentTitle = info[0].title;
+            	currentLength = info[0].length;
+            	updateWidget(info[0].artist, 
+            			     info[0].title,
+            			     info[0].art);
+            }
+        }
+
+
         private void updateMeta(Config config,
                                 Context context,
-                                Intent intent) {
+                                Intent intent, 
+                                boolean currentlyPlaying) {
             MetaData meta = getMeta(config, context, intent);
-        	
-            String artist;
-            String title;
-            Bitmap artBmp;
+        	UpdateInfo info = new UpdateInfo();
+
+            if (meta != null) {
+            	info.artist = meta.artist;
+                info.title = meta.title;
+                info.length = meta.length;
+            } else {
+                info.artist = context.getResources().getString(R.string.noartist);
+                info.title = context.getResources().getString(R.string.notitle);
+                info.length = 0;
+            }
+            
+            publishProgress(info);
+            
+            if (meta != null) {
+                info.art = getArtBmp(meta, config, context);
+            } else {
+            	info.art = getDefaultArt(context);
+            }
+            
+            publishProgress(info);
 
             if (meta != null) {
                 LastFM.scrobbleUpdate(context,
@@ -172,18 +252,9 @@ public class TeaCupService extends Service {
                                       meta.artist, 
                                       meta.title, 
                                       meta.length,
-                                      true);
-
-                artBmp = getArtBmp(meta, config, context);
-                artist = meta.artist;
-                title = meta.title;
-            } else {
-                artist = context.getResources().getString(R.string.noartist);
-                title = context.getResources().getString(R.string.notitle);
-                artBmp = getDefaultArt(context);
+                                      currentlyPlaying);
             }
-
-            updateWidget(context, artist, title, artBmp);
+            
         }
 
 
@@ -307,25 +378,31 @@ public class TeaCupService extends Service {
             return meta;
         }
 
-        private void updateWidget(Context context,
-                                  String artist,
-                                  String title,
-                                  Bitmap artBmp) {
-            AppWidgetManager appWidgetManager
-                = AppWidgetManager.getInstance(context);
-            RemoteViews views = new RemoteViews(context.getPackageName(),
-                                                R.layout.teacup);
+    }
 
-            views.setTextViewText(R.id.artistView, artist);
-            views.setTextViewText(R.id.titleView,  title);
-            views.setImageViewBitmap(R.id.albumArtButton, artBmp);
+    private class UpdateLastFMArgs {
+    	Config config;
+    	Context context;
+    	String artist;
+    	String title;
+    	long length;
+    	boolean currentlyPlaying;
+    }
 
-            ComponentName thisWidget = new ComponentName(context, TeaCup.class);
-            
-            // better if we used a later API where we can guarantee serial in order 
-            // execution of the async task, but just this check should be good enough
-            if (!isCancelled())
-            	appWidgetManager.updateAppWidget(thisWidget, views);
-        }
-    }    
+    private class UpdateLastFMTask extends AsyncTask<UpdateLastFMArgs, Void, Void> {
+
+    	protected Void doInBackground(UpdateLastFMArgs... args) {
+    		try {
+    			LastFM.scrobbleUpdate(args[0].context,
+                                      args[0].config,
+                                      args[0].artist, 
+                                      args[0].title, 
+                                      args[0].length,
+                                      args[0].currentlyPlaying);            	
+            } catch (Exception e) {
+            	Log.e("TeaCupReceiver", "Error updating meta.", e);
+            }
+            return null;
+    	}
+    }
 }

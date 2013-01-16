@@ -57,6 +57,7 @@ public class LastFM {
     private static final String GET_ALBUM_INFO = "album.getinfo";
     private static final String GET_MOBILE_SESSION = "auth.getMobileSession";
     private static final String UPDATE_NOW_PLAYING = "track.updateNowPlaying";
+    private static final String SCROBBLE = "track.scrobble";
 
 	private static final String API_KEY_ARG = "api_key";
     private static final String API_SIG_ARG = "api_sig";
@@ -67,6 +68,7 @@ public class LastFM {
 	private static final String ARTIST_ARG = "artist";
 	private static final String ALBUM_ARG = "album";
     private static final String TRACK_ARG = "track";
+    private static final String TIMESTAMP_ARG = "timestamp";
 	
 	private static final String IMAGE_TAG = "image";
 	private static final String IMAGE_SIZE = "large";
@@ -100,6 +102,14 @@ public class LastFM {
           TRACK_ARG + "%s" +
           API_SECRET;
 
+    private static final String SCROBBLE_SIGNATURE_TEMPLATE
+        = API_KEY_ARG + API_KEY +
+          ARTIST_ARG + "%s" +
+          METHOD_ARG + SCROBBLE +
+          SESSION_KEY_ARG + "%s" +
+          TIMESTAMP_ARG + "%s" +
+          TRACK_ARG + "%s" +
+          API_SECRET;
 
 	private static final Bitmap.CompressFormat CACHE_TYPE = Bitmap.CompressFormat.PNG;
 	private static final String CACHE_EXT = ".png";
@@ -232,7 +242,13 @@ public class LastFM {
                 String curTitle = prefs.getString(CUR_TRACK_TITLE, "");
                 long timeBegan = prefs.getLong(CUR_TRACK_BEGAN, -1);
 
-                if (curArtist != artist || curTitle != title) {
+                Log.d("TeaCup", "from prefs " + curArtist + ", " + curTitle);
+
+                if (!curArtist.equals(artist) || 
+                	 !curTitle.equals(title) ||
+                	 !playing) {
+                    Log.d("TeaCup", "passed");
+                    Log.d("TeaCup", "played for " + (now - timeBegan) + " from " + timeBegan + " vs " + (trackLen / 2));
                     long playedFor = now - timeBegan;
                     if (trackLen >= THIRTY_SECONDS && 
                         (playedFor >= FOUR_MINUTES || 
@@ -240,25 +256,30 @@ public class LastFM {
 
                         Log.d("TeaCup", "played for " + playedFor);
 
-                        scrobble = true;
+                        scrobble = !"".equals(curArtist) && !"".equals(curTitle);
+                        Log.d("TeaCup", "decide scrobble = " + scrobble);
                         scrobbleArtist = curArtist;
                         scrobbleTitle = curTitle;
-                        scrobbleTime = timeBegan / 1000;
+                        scrobbleTime = timeBegan;
                     }
 
                     SharedPreferences.Editor edit = prefs.edit(); 
-                    edit.putString(CUR_TRACK_ARTIST, artist);
-                    edit.putString(CUR_TRACK_TITLE, title);
-                    if (playing)
+                    if (playing) {
+                        Log.d("TeaCup", "putting args");
+                        edit.putString(CUR_TRACK_ARTIST, artist);
+                        edit.putString(CUR_TRACK_TITLE, title);
                         edit.putLong(CUR_TRACK_BEGAN, now);
+                    } else {
+                        Log.d("TeaCup", "putting null");
+                        edit.putString(CUR_TRACK_ARTIST, "");
+                        edit.putString(CUR_TRACK_TITLE, "");
+                        edit.putLong(CUR_TRACK_BEGAN, -1);
+                    }
                     edit.commit();
                 } 			
             }
 
-
-            ScrobbleType scrobbleType = getScrobbleType(context, config);
-
-            switch (scrobbleType) {
+            switch (getScrobbleType(context, config)) {
                 case NOSCROBBLE: 
                     break;
                 case SCROBBLE:
@@ -268,12 +289,15 @@ public class LastFM {
                                       scrobbleArtist, 
                                       scrobbleTitle, 
                                       scrobbleTime);
-                    sendNowPlaying(context, config, artist, title);
+                    if (playing)
+                    	sendNowPlaying(context, config, artist, title);
+                    break;
                 case CACHE:
                     if (scrobble)
                         cacheScrobble(scrobbleArtist, 
                                       scrobbleTitle, 
                                       scrobbleTime);
+                    break;
             }
 	    } catch (InterruptedException e) {
             Log.w("TeaCup", "updateScrobble interrupted", e);
@@ -303,11 +327,48 @@ public class LastFM {
                                       String title,
                                       long time) 
     		throws InterruptedException {
-    	//try {
-    		Log.d("TeaCup", "scrobble " + artist + ", " + title + ", " + time);
-    	//} catch (IOException e) {
-    	//	Log.e("TeaCup", "scrobbleTrack ioexception", e);
-    	//}
+    	try {
+    		String sessionKey = getSessionKey(context, config, true);
+            String timestamp = Long.toString(time / 1000);
+
+            String apiSig = String.format(SCROBBLE_SIGNATURE_TEMPLATE,
+                                          artist,
+                                          sessionKey, 
+                                          timestamp,
+                                          title);
+            apiSig = md5Hash(apiSig);
+
+            ArrayList<NameValuePair> vals = new ArrayList<NameValuePair>(4);
+            // always 0 and 1...
+            vals.add(new BasicNameValuePair(API_SIG_ARG, apiSig));
+            vals.add(new BasicNameValuePair(SESSION_KEY_ARG, sessionKey));
+            vals.add(new BasicNameValuePair(API_KEY_ARG, API_KEY));
+            vals.add(new BasicNameValuePair(METHOD_ARG, SCROBBLE));
+            vals.add(new BasicNameValuePair(ARTIST_ARG, artist));
+            vals.add(new BasicNameValuePair(TRACK_ARG, title));
+            vals.add(new BasicNameValuePair(TIMESTAMP_ARG, timestamp));
+
+            HttpResponse response = postRequest(SECURE_API_ROOT, vals);
+            boolean ok = lfmIsOK(postRequest(SECURE_API_ROOT, vals));
+            if (!ok) {
+                Log.d("TeaCup", "retrying scrobble");
+                // retry once with fresh key
+                sessionKey = getSessionKey(context, config, false);
+                vals.set(1, new BasicNameValuePair(SESSION_KEY_ARG, sessionKey));
+                apiSig = String.format(SCROBBLE_SIGNATURE_TEMPLATE,
+                                       artist,
+                                       sessionKey, 
+                                       timestamp,
+                                       title);
+                apiSig = md5Hash(apiSig);
+                vals.set(0, new BasicNameValuePair(API_SIG_ARG, apiSig));
+                postRequest(SECURE_API_ROOT, vals);
+            }
+
+    		Log.d("TeaCup", "scrobble " + artist + ", " + title + ".");
+    	} catch (IOException e) {
+    		Log.e("TeaCup", "scrobble ioexception", e);
+    	}
     }
 
     private static void cacheScrobble(String artist,
@@ -330,20 +391,27 @@ public class LastFM {
                                           title);
             apiSig = md5Hash(apiSig);
 
-            List<NameValuePair> vals = new ArrayList<NameValuePair>(4);
-            vals.add(new BasicNameValuePair(API_KEY_ARG, API_KEY));
+            ArrayList<NameValuePair> vals = new ArrayList<NameValuePair>(6);
+            // always 0 and 1
             vals.add(new BasicNameValuePair(API_SIG_ARG, apiSig));
             vals.add(new BasicNameValuePair(SESSION_KEY_ARG, sessionKey));
+            vals.add(new BasicNameValuePair(API_KEY_ARG, API_KEY));
             vals.add(new BasicNameValuePair(METHOD_ARG, UPDATE_NOW_PLAYING));
             vals.add(new BasicNameValuePair(ARTIST_ARG, artist));
             vals.add(new BasicNameValuePair(TRACK_ARG, title));
 
-            HttpResponse response = postRequest(SECURE_API_ROOT, vals);
             boolean ok = lfmIsOK(postRequest(SECURE_API_ROOT, vals));
             if (!ok) {
+                Log.d("TeaCup", "retrying now playing");
                 // retry once with fresh key
                 sessionKey = getSessionKey(context, config, false);
-                vals.add(new BasicNameValuePair(SESSION_KEY_ARG, sessionKey));
+                vals.set(1, new BasicNameValuePair(SESSION_KEY_ARG, sessionKey));
+                apiSig = String.format(NOW_PLAYING_SIGNATURE_TEMPLATE, 
+                                       artist,
+                                       sessionKey, 
+                                       title);
+                apiSig = md5Hash(apiSig);
+                vals.set(0, new BasicNameValuePair(API_SIG_ARG, apiSig));
                 postRequest(SECURE_API_ROOT, vals);
             }
 
@@ -380,7 +448,7 @@ public class LastFM {
                                           username);
             apiSig = md5Hash(apiSig);
             
-            List<NameValuePair> vals = new ArrayList<NameValuePair>(4);
+            List<NameValuePair> vals = new ArrayList<NameValuePair>(5);
             vals.add(new BasicNameValuePair(API_KEY_ARG, API_KEY));
             vals.add(new BasicNameValuePair(API_SIG_ARG, apiSig));
             vals.add(new BasicNameValuePair(METHOD_ARG, GET_MOBILE_SESSION));
@@ -593,8 +661,8 @@ public class LastFM {
 				if (eventType == XmlPullParser.START_TAG &&
 						tagName.equals(xpp.getName())) {
                     if (attrName != null) {
-                        String size = xpp.getAttributeValue(LFM_NAMESPACE, attrName);
-                        if (attrVal.equals(size)) {
+                        String val = xpp.getAttributeValue(LFM_NAMESPACE, attrName);
+                        if (attrVal.equals(val)) {
                             xpp.next();
                             return xpp.getText();
                         }
@@ -635,11 +703,9 @@ public class LastFM {
 				
 				if (eventType == XmlPullParser.START_TAG &&
 						LFM_TAG.equals(xpp.getName())) {
-                    String size = xpp.getAttributeValue(LFM_NAMESPACE, LFM_STATUS_ATTR);
-                    if (LFM_STATUS_OK.equals(size)) 
-                        return true;
-                    else
-                        return false;
+                    String val = xpp.getAttributeValue(LFM_NAMESPACE, LFM_STATUS_ATTR);
+                    Log.d("TeaCup", "status: " + val);
+                    return LFM_STATUS_OK.equals(val);
 				}
 				xpp.next();
 				eventType = xpp.getEventType();
@@ -651,6 +717,8 @@ public class LastFM {
 			// do nothing
 			Log.d("TeaCup", "grabXmlTag ioexception", e);
 		}
+        
+        Log.d("TeaCup", "status: bad");
 
         return false;
     }
@@ -669,7 +737,6 @@ public class LastFM {
     private static HttpResponse postRequest(String url, 
                                             List<NameValuePair> vals)
                 throws IOException, InterruptedException {
-
         waitForRequestPermission();
 
         try {
