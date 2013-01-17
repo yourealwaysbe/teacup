@@ -69,6 +69,7 @@ public class LastFM {
 	private static final String ALBUM_ARG = "album";
     private static final String TRACK_ARG = "track";
     private static final String TIMESTAMP_ARG = "timestamp";
+    private static final String DURATION_ARG = "duration";
 	
 	private static final String IMAGE_TAG = "image";
 	private static final String IMAGE_SIZE = "large";
@@ -97,6 +98,7 @@ public class LastFM {
     private static final String NOW_PLAYING_SIGNATURE_TEMPLATE
         = API_KEY_ARG + API_KEY +
           ARTIST_ARG + "%s" +
+          DURATION_ARG + "%s" +
           METHOD_ARG + UPDATE_NOW_PLAYING +
           SESSION_KEY_ARG + "%s" +
           TRACK_ARG + "%s" +
@@ -226,6 +228,7 @@ public class LastFM {
                                       String title, 
                                       long trackLen,
                                       boolean playing) {
+		Log.d("TeaCup", "updateScrobble(" + artist + ", " + title + ", " + playing);
         try { 
             boolean scrobble = false;
             String scrobbleArtist = null;
@@ -290,7 +293,7 @@ public class LastFM {
                                       scrobbleTitle, 
                                       scrobbleTime);
                     if (playing)
-                    	sendNowPlaying(context, config, artist, title);
+                    	sendNowPlaying(context, config, artist, title, trackLen);
                     break;
                 case CACHE:
                     if (scrobble)
@@ -327,6 +330,7 @@ public class LastFM {
                                       String title,
                                       long time) 
     		throws InterruptedException {
+		Log.d("TeaCup", "scrobble " + artist + ", " + title + ".");
     	try {
     		String sessionKey = getSessionKey(context, config, true);
             String timestamp = Long.toString(time / 1000);
@@ -348,7 +352,6 @@ public class LastFM {
             vals.add(new BasicNameValuePair(TRACK_ARG, title));
             vals.add(new BasicNameValuePair(TIMESTAMP_ARG, timestamp));
 
-            HttpResponse response = postRequest(SECURE_API_ROOT, vals);
             boolean ok = lfmIsOK(postRequest(SECURE_API_ROOT, vals));
             if (!ok) {
                 Log.d("TeaCup", "retrying scrobble");
@@ -365,7 +368,7 @@ public class LastFM {
                 postRequest(SECURE_API_ROOT, vals);
             }
 
-    		Log.d("TeaCup", "scrobble " + artist + ", " + title + ".");
+    		Log.d("TeaCup", "done scrobble " + artist + ", " + title + ".");
     	} catch (IOException e) {
     		Log.e("TeaCup", "scrobble ioexception", e);
     	}
@@ -380,13 +383,17 @@ public class LastFM {
     private static void sendNowPlaying(Context context, 
     		                           Config config,
     		                           String artist, 
-    		                           String title) 
+    		                           String title,
+    		                           long length) 
     		throws InterruptedException {
+		Log.d("TeaCup", "now playing " + artist + ", " + title + ".");
     	try {
     		String sessionKey = getSessionKey(context, config, true);
-
+    		String strLength = Long.toString(length / 1000);
+    		
             String apiSig = String.format(NOW_PLAYING_SIGNATURE_TEMPLATE, 
                                           artist,
+                                          strLength,
                                           sessionKey, 
                                           title);
             apiSig = md5Hash(apiSig);
@@ -399,6 +406,7 @@ public class LastFM {
             vals.add(new BasicNameValuePair(METHOD_ARG, UPDATE_NOW_PLAYING));
             vals.add(new BasicNameValuePair(ARTIST_ARG, artist));
             vals.add(new BasicNameValuePair(TRACK_ARG, title));
+            vals.add(new BasicNameValuePair(DURATION_ARG, strLength));
 
             boolean ok = lfmIsOK(postRequest(SECURE_API_ROOT, vals));
             if (!ok) {
@@ -408,6 +416,7 @@ public class LastFM {
                 vals.set(1, new BasicNameValuePair(SESSION_KEY_ARG, sessionKey));
                 apiSig = String.format(NOW_PLAYING_SIGNATURE_TEMPLATE, 
                                        artist,
+                                       strLength,
                                        sessionKey, 
                                        title);
                 apiSig = md5Hash(apiSig);
@@ -415,16 +424,16 @@ public class LastFM {
                 postRequest(SECURE_API_ROOT, vals);
             }
 
-    		Log.d("TeaCup", "now playing " + artist + ", " + title + ".");
+    		Log.d("TeaCup", "done now playing " + artist + ", " + title + ".");
     	} catch (IOException e) {
     		Log.e("TeaCup", "now playing ioexception", e);
     	}
     }
 
 
-    private static String getSessionKey(Context context, 
-    		                            Config config,
-    		                            boolean tryStoredKey) 
+    private synchronized static String getSessionKey(Context context, 
+    		                                         Config config,
+    		                                         boolean tryStoredKey) 
                 throws IOException, InterruptedException {
         String key = "";
         String username = config.getLastFMUserName();
@@ -470,6 +479,8 @@ public class LastFM {
                 }
             }
         }
+        
+        Log.d("TeaCup", "gotsessionkey: " + key);
 
         return key;
     }
