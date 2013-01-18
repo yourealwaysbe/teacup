@@ -1,7 +1,9 @@
 package net.chilon.matt.teacup;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -48,6 +50,8 @@ public class LastFM {
     }
 	
 	private static final int URL_TIMEOUT = 5000;
+
+    private static final String SCROBBLE_CACHE_FILENAME = "scrobble-cache";
 	
 	private static final String API_KEY = "d6e802774ce70edfca5d501009377a53";
     private static final String API_SECRET = "9320d44c69440dfe648bca72140fecb2";
@@ -238,7 +242,7 @@ public class LastFM {
             long now = System.currentTimeMillis();
             
             // Update stored data
-            synchronized (LastFM.class) {
+            synchronized (PREFS_FILE) {
                 SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, 0);
 
                 String curArtist = prefs.getString(CUR_TRACK_ARTIST, "");
@@ -297,7 +301,8 @@ public class LastFM {
                     break;
                 case CACHE:
                     if (scrobble)
-                        cacheScrobble(scrobbleArtist, 
+                        cacheScrobble(context,
+                                      scrobbleArtist, 
                                       scrobbleTitle, 
                                       scrobbleTime);
                     break;
@@ -305,6 +310,28 @@ public class LastFM {
 	    } catch (InterruptedException e) {
             Log.w("TeaCup", "updateScrobble interrupted", e);
         }
+	}
+	
+	public static void scrobbleCache(Config config, Context context) {
+    	synchronized (SCROBBLE_CACHE_FILENAME) {
+    		Log.d("TeaCup", "listing cache");
+    		try {
+                FileInputStream fis     
+                    = context.openFileInput(SCROBBLE_CACHE_FILENAME);
+                InputStreamReader ir = new InputStreamReader(fis);
+                BufferedReader buf = new BufferedReader(ir);
+                String read = buf.readLine();
+                while (read != null) {
+                    Log.d("TeaCup", "cache: " + read);
+                    read = buf.readLine();
+                }
+    			fis.close();
+    		} catch (FileNotFoundException e) {
+    			Log.e("TeaCup", "cacheScrobble filenotfoundexception", e);
+    		} catch (IOException e) {
+    			Log.e("TeaCup", "cacheScrobble ioexception", e);
+    		}
+    	}
 	}
 
 
@@ -374,10 +401,34 @@ public class LastFM {
     	}
     }
 
-    private static void cacheScrobble(String artist,
+    private static void cacheScrobble(Context context,
+                                      String artist,
                                       String title,
                                       long time) {
-        Log.d("TeaCup", "cache " + artist + ", " + title + ", " + time);
+    	synchronized (SCROBBLE_CACHE_FILENAME) {
+    		try {
+    			FileOutputStream fos;
+    			try {
+    				fos = context.openFileOutput(SCROBBLE_CACHE_FILENAME, 
+    						                     Context.MODE_APPEND);
+    			} catch (FileNotFoundException e) {
+    				fos = context.openFileOutput(SCROBBLE_CACHE_FILENAME, 
+        				                         Context.MODE_PRIVATE);
+    			}
+    			fos.write(artist.getBytes());
+    			fos.write("\n".getBytes());
+    			fos.write(title.getBytes());
+    			fos.write("\n".getBytes());
+    			fos.write(Long.toString(time).getBytes());
+    			fos.write("\n".getBytes());
+    			fos.close();
+    		} catch (FileNotFoundException e) {
+    			Log.e("TeaCup", "cacheScrobble filenotfoundexception", e);
+    		} catch (IOException e) {
+    			Log.e("TeaCup", "cacheScrobble ioexception", e);
+    		}
+    		Log.d("TeaCup", "cache " + artist + ", " + title + ", " + time);
+    	}
     }
 
     private static void sendNowPlaying(Context context, 
@@ -431,56 +482,59 @@ public class LastFM {
     }
 
 
-    private synchronized static String getSessionKey(Context context, 
-    		                                         Config config,
-    		                                         boolean tryStoredKey) 
+    private static String getSessionKey(Context context, 
+    		                            Config config,
+    		                            boolean tryStoredKey) 
                 throws IOException, InterruptedException {
         String key = "";
-        String username = config.getLastFMUserName();
-        String password = config.getLastFMPassword();
-        
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, 0);
-       
-        if (tryStoredKey) {
-            String sessionUsername = prefs.getString(SESSION_KEY_USERNAME, "");
-            String sessionPassword = prefs.getString(SESSION_KEY_PASSWORD, "");
-            if (username.equals(sessionUsername) && 
-                password.equals(sessionPassword))
-                key = prefs.getString(SESSION_KEY, "");
-        }
-    
-        // request key 
-        if ("".equals(key)) {
-
-            String apiSig = String.format(SESSION_SIGNATURE_TEMPLATE, 
-                                          password,
-                                          username);
-            apiSig = md5Hash(apiSig);
+    	
+        synchronized (PREFS_FILE) {
+            String username = config.getLastFMUserName();
+            String password = config.getLastFMPassword();
             
-            List<NameValuePair> vals = new ArrayList<NameValuePair>(5);
-            vals.add(new BasicNameValuePair(API_KEY_ARG, API_KEY));
-            vals.add(new BasicNameValuePair(API_SIG_ARG, apiSig));
-            vals.add(new BasicNameValuePair(METHOD_ARG, GET_MOBILE_SESSION));
-            vals.add(new BasicNameValuePair(USERNAME_ARG, username));
-            vals.add(new BasicNameValuePair(PASSWORD_ARG, password));
+            SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, 0);
+           
+            if (tryStoredKey) {
+                String sessionUsername = prefs.getString(SESSION_KEY_USERNAME, "");
+                String sessionPassword = prefs.getString(SESSION_KEY_PASSWORD, "");
+                if (username.equals(sessionUsername) && 
+                    password.equals(sessionPassword))
+                    key = prefs.getString(SESSION_KEY, "");
+            }
+        
+            // request key 
+            if ("".equals(key)) {
 
-            HttpResponse response = postRequest(SECURE_API_ROOT, vals);
-            HttpEntity entity = response.getEntity();
-            if (entity != null) {
-                key = grabXmlTag(entity.getContent(), KEY_TAG);
-                if (key != null) {
-                    SharedPreferences.Editor edit = prefs.edit(); 
-                    edit.putString(SESSION_KEY_USERNAME, username);
-                    edit.putString(SESSION_KEY_PASSWORD, password);
-                    edit.putString(SESSION_KEY, key);
-                    edit.commit();
-                } else {
-                    key = "";
+                String apiSig = String.format(SESSION_SIGNATURE_TEMPLATE, 
+                                              password,
+                                              username);
+                apiSig = md5Hash(apiSig);
+                
+                List<NameValuePair> vals = new ArrayList<NameValuePair>(5);
+                vals.add(new BasicNameValuePair(API_KEY_ARG, API_KEY));
+                vals.add(new BasicNameValuePair(API_SIG_ARG, apiSig));
+                vals.add(new BasicNameValuePair(METHOD_ARG, GET_MOBILE_SESSION));
+                vals.add(new BasicNameValuePair(USERNAME_ARG, username));
+                vals.add(new BasicNameValuePair(PASSWORD_ARG, password));
+
+                HttpResponse response = postRequest(SECURE_API_ROOT, vals);
+                HttpEntity entity = response.getEntity();
+                if (entity != null) {
+                    key = grabXmlTag(entity.getContent(), KEY_TAG);
+                    if (key != null) {
+                        SharedPreferences.Editor edit = prefs.edit(); 
+                        edit.putString(SESSION_KEY_USERNAME, username);
+                        edit.putString(SESSION_KEY_PASSWORD, password);
+                        edit.putString(SESSION_KEY, key);
+                        edit.commit();
+                    } else {
+                        key = "";
+                    }
                 }
             }
+            
+            Log.d("TeaCup", "gotsessionkey: " + key);
         }
-        
-        Log.d("TeaCup", "gotsessionkey: " + key);
 
         return key;
     }

@@ -16,6 +16,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.IBinder;
 import android.provider.MediaStore;
@@ -87,6 +88,8 @@ public class TeaCupService extends Service {
         IntentFilter filter = new IntentFilter();
         filter.addAction(config.getPlayer().getMetaChangedAction());
         filter.addAction(config.getPlayer().getPlaystateChangedAction());
+     
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         
         receiver = new BroadcastReceiver() {
             @Override
@@ -103,7 +106,11 @@ public class TeaCupService extends Service {
                 	
                 if (player.getPlaystateChangedAction().equals(action)) {
                 	updatePlaystate(config, context, intent);
-                }                
+                }
+                
+                if (ConnectivityManager.CONNECTIVITY_ACTION.equals(action)) {
+                	LastFM.scrobbleCache(config, context);
+                }
             }
         };
         registerReceiver(receiver, filter);
@@ -220,6 +227,11 @@ public class TeaCupService extends Service {
             }
             return null;
     	}
+
+        protected void onPostExecute(Void args) {
+            if (!unlocked)
+                currentMetaLock.unlock();
+        }
 
     	protected void onProgressUpdate(Void... args) {
             if (currentMeta != null) {
