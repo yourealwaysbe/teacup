@@ -234,12 +234,14 @@ public class TeaCupService extends Service {
         }
 
     	protected void onProgressUpdate(Void... args) {
-            if (currentMeta != null) {
-                updateWidget(currentMeta.artist, 
-                             currentMeta.title, 
-                             currentMeta.artBmp);
-            } else {
-                resetWidget();
+            if (!isCancelled()) {
+                if (currentMeta != null) {
+                    updateWidget(currentMeta.artist, 
+                                 currentMeta.title, 
+                                 currentMeta.artBmp);
+                } else {
+                    resetWidget();
+                }
             }
             // technically we still need to set the album art, but that's not used anywhere
             // so we can release the lock early.
