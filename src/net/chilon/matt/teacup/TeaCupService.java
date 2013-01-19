@@ -109,11 +109,20 @@ public class TeaCupService extends Service {
                 }
                 
                 if (ConnectivityManager.CONNECTIVITY_ACTION.equals(action)) {
-                	LastFM.scrobbleCache(config, context);
+                	doConnectivityChange(config, context);
                 }
             }
         };
         registerReceiver(receiver, filter);
+    }
+    
+    private void doConnectivityChange(Config config, Context context) {
+    	UpdateLastFMArgs args = new UpdateLastFMArgs();
+    	args.config = config;
+    	args.context = context;
+    	
+    	new UpdateLastFMTask().execute(args);
+    	new LastFMScrobbleCacheTask().execute(args);
     }
 
 
@@ -414,6 +423,18 @@ public class TeaCupService extends Service {
                                           length,
                                           currentlyPlaying);
                 }
+            } catch (Exception e) {
+            	Log.e("TeaCupReceiver", "Error updating meta.", e);
+            }
+            return null;
+    	}
+    }
+    
+    private class LastFMScrobbleCacheTask extends AsyncTask<UpdateLastFMArgs, Void, Void> {
+
+    	protected Void doInBackground(UpdateLastFMArgs... args) {
+    		try {
+    			LastFM.scrobbleCache(args[0].config, args[0].context);
             } catch (Exception e) {
             	Log.e("TeaCupReceiver", "Error updating meta.", e);
             }

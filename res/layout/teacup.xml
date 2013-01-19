@@ -70,7 +70,8 @@
         android:layout_centerVertical="true"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_gravity="center">
+        android:layout_gravity="center"
+        android:paddingLeft="5dp">
 
         <TextView
             android:id="@+id/artistView"
