@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -37,6 +36,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
 import org.xmlpull.v1.XmlPullParserException;
@@ -461,8 +461,8 @@ public class LastFM {
             vals.add(new BasicNameValuePair(title_arg, title));
             vals.add(new BasicNameValuePair(timestamp_arg, timestamp));
     
+            ++i;	
             artist = buf.readLine();
-            ++i;
         }
 
         Log.d("TeaCup", "sending batch!");
@@ -479,8 +479,6 @@ public class LastFM {
             resetNameValue(SESSION_KEY_ARG, sessionKey, vals);
             apiSig = makeApiSig(vals);
             vals.add(new BasicNameValuePair(API_SIG_ARG, apiSig));
-            //HttpResponse response = postRequest(SECURE_API_ROOT, vals);
-            //logIS(response.getEntity().getContent());
             ok = lfmIsOK(postRequest(SECURE_API_ROOT, vals));
             if (!ok)
                 throw new IOException("Failed to connect to lastfm!");
@@ -612,7 +610,10 @@ public class LastFM {
                 resetNameValue(SESSION_KEY_ARG, sessionKey, vals);
                 apiSig = makeApiSig(vals);
                 vals.add(new BasicNameValuePair(API_SIG_ARG, apiSig));
-                postRequest(SECURE_API_ROOT, vals);
+                ok = lfmIsOK(postRequest(SECURE_API_ROOT, vals));
+                if (!ok) {
+                    Log.w("TeaCup", "Failed to send now playing.");
+                }
             }
 
     		Log.d("TeaCup", "done now playing " + artist + ", " + title + ".");
@@ -942,7 +943,7 @@ public class LastFM {
 
         try {
             HttpPost post = new HttpPost(url);
-            post.setEntity(new UrlEncodedFormEntity(vals));
+            post.setEntity(new UrlEncodedFormEntity(vals, HTTP.UTF_8));
             HttpClient client = new DefaultHttpClient();
             return client.execute(post);
         } catch (ClientProtocolException e) {
@@ -971,13 +972,21 @@ public class LastFM {
 		}
     }
 
-    private static String md5Hash(String string) {
+    // Following method stolen from lastfm-java: https://code.google.com/p/lastfm-java/
+    // Which is something i wish i'd found before starting this class file :)
+    private static String md5Hash(String s) {
     	String hash = "";
         try {
             MessageDigest md5 = MessageDigest.getInstance("MD5");
-            md5.update(string.getBytes("UTF-8"), 0, string.length());
-            BigInteger i = new BigInteger(1,md5.digest());
-            hash = String.format("%1$032x", i);
+            byte[] bytes = md5.digest(s.getBytes("UTF-8"));
+            StringBuilder b = new StringBuilder(32);
+            for (byte aByte : bytes) {
+                    String hex = Integer.toHexString((int) aByte & 0xFF);
+                    if (hex.length() == 1)
+                            b.append('0');
+                    b.append(hex);
+            }
+            return b.toString();
         } catch (NoSuchAlgorithmException e) {
         	Log.e("TeaCup", "md5Hash nosuchalgorithmexception", e);
         } catch (UnsupportedEncodingException e) {
@@ -1012,10 +1021,11 @@ public class LastFM {
         Collections.sort(vals, comparator);
         StringBuilder sb = new StringBuilder();
         for (NameValuePair p : vals) {
-            sb.append(p.getName());
-            sb.append(p.getValue());
+        	sb.append(p.getName());
+        	sb.append(p.getValue());
         }
         sb.append(API_SECRET);
+        Log.d("TeaCup", "apisig: " + sb.toString());
         return md5Hash(sb.toString());
     }
     
