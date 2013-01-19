@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Matthew Hague
+ * Copyright 2013 Matthew Hague (matthewhague@zoho.com)
  * Released under the GNU General Public License v3 (see GPL.txt)
  */
 
