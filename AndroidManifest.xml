@@ -1,3 +1,7 @@
+<!-- Copyright 2013 Matthew Hague
+     Released under the GNU General Public License (see GPL.txt) -->
+
+
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="net.chilon.matt.teacup"
     android:versionCode="1"

@@ -1,3 +1,7 @@
+/**
+ * Copyright 2013 Matthew Hague
+ * Released under the GNU General Public License (see GPL.txt)
+ */
 
 // Config object containing all user preferences and read/write methods
 // We're keeping one shared config at the moment -- i'm not sure how to
