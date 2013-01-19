@@ -947,7 +947,7 @@ public class LastFM {
             return client.execute(post);
         } catch (ClientProtocolException e) {
             Log.e("TeaCup", "ClientProtocolException -- i guess we did something wrong.");
-            throw new IOException(e);
+            throw new IOException("Failed to create client protocol: " + e.toString());
         }
     }
 

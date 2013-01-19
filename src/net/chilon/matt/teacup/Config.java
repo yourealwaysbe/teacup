@@ -63,7 +63,7 @@ public class Config {
     
     private static final boolean DEFAULT_GET_EMBEDDED_ART = true;
     private static final boolean DEFAULT_GET_DIRECTORY_ART = true;
-    private static final boolean DEFAULT_GET_LASTFM_ART_WIFI = true;
+    private static final boolean DEFAULT_GET_LASTFM_ART_WIFI = false;
     private static final boolean DEFAULT_GET_LASTFM_ART_NETWORK = false;
     private static final int DEFAULT_LASTFM_CACHE_STYLE = LASTFM_CACHE_INDIR;
     private static final String DEFAULT_LASTFM_DIRECTORY = Environment.getExternalStorageDirectory().getPath() +
