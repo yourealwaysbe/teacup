@@ -1,6 +1,6 @@
 package net.chilon.matt.teacup;
 
-import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,7 +18,10 @@ import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -52,6 +55,7 @@ public class LastFM {
 	private static final int URL_TIMEOUT = 5000;
 
     private static final String SCROBBLE_CACHE_FILENAME = "scrobble-cache";
+    private static final String SCROBBLE_TEMP_CACHE_FILENAME = "temp-scrobble-cache";
 	
 	private static final String API_KEY = "d6e802774ce70edfca5d501009377a53";
     private static final String API_SECRET = "9320d44c69440dfe648bca72140fecb2";
@@ -92,30 +96,11 @@ public class LastFM {
 	      ARTIST_ARG + "=%s&" +
 	      ALBUM_ARG + "=%s";
 
-    private static final String SESSION_SIGNATURE_TEMPLATE 
-        = API_KEY_ARG + API_KEY + 
-          METHOD_ARG + GET_MOBILE_SESSION +
-          PASSWORD_ARG + "%s" +
-          USERNAME_ARG + "%s" +
-          API_SECRET;
-
-    private static final String NOW_PLAYING_SIGNATURE_TEMPLATE
-        = API_KEY_ARG + API_KEY +
-          ARTIST_ARG + "%s" +
-          DURATION_ARG + "%s" +
-          METHOD_ARG + UPDATE_NOW_PLAYING +
-          SESSION_KEY_ARG + "%s" +
-          TRACK_ARG + "%s" +
-          API_SECRET;
-
-    private static final String SCROBBLE_SIGNATURE_TEMPLATE
-        = API_KEY_ARG + API_KEY +
-          ARTIST_ARG + "%s" +
-          METHOD_ARG + SCROBBLE +
-          SESSION_KEY_ARG + "%s" +
-          TIMESTAMP_ARG + "%s" +
-          TRACK_ARG + "%s" +
-          API_SECRET;
+    private static final int MAX_SCROBBLE_SIZE = 50;
+    private static final int NUM_SCROBBLE_FIELDS = 3;
+    private static final String ITH_TIMESTAMP = "timestamp[%d]";
+    private static final String ITH_ARTIST = "artist[%d]";
+    private static final String ITH_TITLE = "track[%d]";
 
 	private static final Bitmap.CompressFormat CACHE_TYPE = Bitmap.CompressFormat.PNG;
 	private static final String CACHE_EXT = ".png";
@@ -140,6 +125,7 @@ public class LastFM {
     private static final String CUR_TRACK_ARTIST = "track-artist";
     private static final String CUR_TRACK_TITLE = "track-title";
     private static final String CUR_TRACK_BEGAN = "track-began";
+    private static final String CUR_TRACK_LEN = "track-length";
     private static final String CUR_TRACK_TOTAL_TIME = "track-total-time";
     private static final String SESSION_KEY = "session-key";
     private static final String SESSION_KEY_USERNAME = "session-key-username";
@@ -248,18 +234,19 @@ public class LastFM {
                 String curArtist = prefs.getString(CUR_TRACK_ARTIST, "");
                 String curTitle = prefs.getString(CUR_TRACK_TITLE, "");
                 long timeBegan = prefs.getLong(CUR_TRACK_BEGAN, -1);
+                long curTrackLen = prefs.getLong(CUR_TRACK_LEN, 0);
 
-                Log.d("TeaCup", "from prefs " + curArtist + ", " + curTitle);
+                Log.d("TeaCup", "from prefs " + curArtist + ", " + curTitle + ", " + curTrackLen);
 
                 if (!curArtist.equals(artist) || 
                 	 !curTitle.equals(title) ||
                 	 !playing) {
                     Log.d("TeaCup", "passed");
-                    Log.d("TeaCup", "played for " + (now - timeBegan) + " from " + timeBegan + " vs " + (trackLen / 2));
+                    Log.d("TeaCup", "played for " + (now - timeBegan) + " from " + timeBegan + " vs " + (curTrackLen / 2));
                     long playedFor = now - timeBegan;
                     if (trackLen >= THIRTY_SECONDS && 
                         (playedFor >= FOUR_MINUTES || 
-                         playedFor >= (trackLen / 2))) {
+                         playedFor >= (curTrackLen / 2))) {
 
                         Log.d("TeaCup", "played for " + playedFor);
 
@@ -276,11 +263,13 @@ public class LastFM {
                         edit.putString(CUR_TRACK_ARTIST, artist);
                         edit.putString(CUR_TRACK_TITLE, title);
                         edit.putLong(CUR_TRACK_BEGAN, now);
+                        edit.putLong(CUR_TRACK_LEN, trackLen);
                     } else {
                         Log.d("TeaCup", "putting null");
                         edit.putString(CUR_TRACK_ARTIST, "");
                         edit.putString(CUR_TRACK_TITLE, "");
                         edit.putLong(CUR_TRACK_BEGAN, -1);
+                        edit.putLong(CUR_TRACK_LEN, 0);
                     }
                     edit.commit();
                 } 			
@@ -313,26 +302,181 @@ public class LastFM {
 	}
 	
 	public static void scrobbleCache(Config config, Context context) {
+    	if(getScrobbleType(context, config) != ScrobbleType.SCROBBLE)
+    		return;
+		
     	synchronized (SCROBBLE_CACHE_FILENAME) {
-    		Log.d("TeaCup", "listing cache");
+            FileInputStream fis = null;
     		try {
-                FileInputStream fis     
-                    = context.openFileInput(SCROBBLE_CACHE_FILENAME);
-                InputStreamReader ir = new InputStreamReader(fis);
-                BufferedReader buf = new BufferedReader(ir);
-                String read = buf.readLine();
-                while (read != null) {
-                    Log.d("TeaCup", "cache: " + read);
-                    read = buf.readLine();
+                fis = context.openFileInput(SCROBBLE_CACHE_FILENAME);
+            } catch (FileNotFoundException e) {
+                fis = null;
+            }
+
+            boolean didFile = false;
+            int numBatches = 0;
+            if (fis != null) {
+                try {
+                    InputStreamReader ir = new InputStreamReader(fis);
+                    BufferedReader buf = new BufferedReader(ir);
+                    String artist = buf.readLine();
+                    while (artist != null) {
+                        artist = scrobbleCacheChunk(config, 
+                                                    context,
+                                                    artist, 
+                                                    buf);
+                        ++numBatches;
+                    }
+
+                    didFile = true;
+                } catch (IOException e) {
+                    Log.e("TeaCup", "cacheScrobble ioexception", e);
+                } catch (InterruptedException e) {
+                	Log.e("TeaCup", "cacheScrobble interruptedexception", e);
                 }
-    			fis.close();
-    		} catch (FileNotFoundException e) {
-    			Log.e("TeaCup", "cacheScrobble filenotfoundexception", e);
-    		} catch (IOException e) {
-    			Log.e("TeaCup", "cacheScrobble ioexception", e);
-    		}
+            }
+
+
+            try {
+                if (fis != null) {
+                    fis.close();
+                    if (!didFile) {
+                        // we did MAX_SCROBBLE_SIZE * numBatches of the cache
+                        // contents, but not the rest.  Need to update the
+                        // cache file to reflect that
+                        cutDownCacheFile(context, 
+                                         numBatches * MAX_SCROBBLE_SIZE);
+
+                    } else {
+                        context.deleteFile(SCROBBLE_CACHE_FILENAME);
+                    }
+                }
+            } catch (IOException e) {
+                Log.e("TeaCup", "scrobbleCache ioexception", e);
+            }
     	}
 	}
+	
+	public static long getScrobbleCacheSize(Context context) {
+		File cache = context.getFileStreamPath(SCROBBLE_CACHE_FILENAME);
+		return cache.length();
+	}
+	
+	public static void clearScrobbleCache(Context context) {
+		context.deleteFile(SCROBBLE_CACHE_FILENAME);
+	}
+
+    private static void cutDownCacheFile(Context context, int num) {
+        FileInputStream fis = null;
+        FileOutputStream fos = null;
+
+        boolean copied = false;
+
+        try {
+            fis = context.openFileInput(SCROBBLE_CACHE_FILENAME);
+            fos = context.openFileOutput(SCROBBLE_TEMP_CACHE_FILENAME,
+                                         Context.MODE_PRIVATE);
+
+            InputStreamReader ir = new InputStreamReader(fis);
+            BufferedReader buf = new BufferedReader(ir);
+            BufferedOutputStream bufOut = new BufferedOutputStream(fos);
+
+            for (int i = 0; i < num * NUM_SCROBBLE_FIELDS; ++i) {
+                buf.readLine();
+            }
+
+            String out = buf.readLine();
+            while (out != null) {
+                bufOut.write(out.getBytes());
+                bufOut.write("\n".getBytes());
+                out = buf.readLine();
+            }
+            bufOut.flush();
+
+            copied = true;
+        } catch (FileNotFoundException e) { 
+        	Log.e("TeaCup", "cutDownCacheFile filenotfoundexception", e);
+    	} catch (IOException e) {
+    		Log.e("TeaCup", "cutDownCacheFile ioexception", e);
+    	} finally {
+            try {
+                if (fis != null)
+                    fis.close();
+            } catch (IOException e) {
+                Log.d("TeaCup", "cutDownCacheFile ioexception", e);
+            } finally {
+                try {
+                    if (fos != null)
+                        fos.close();
+                } catch (IOException e) {
+                    Log.d("TeaCup", "cutDownCacheFile ioexception", e);
+                }
+            }
+        }
+
+        if (copied) {
+            context.deleteFile(SCROBBLE_CACHE_FILENAME);
+            File tmp = context.getFileStreamPath(SCROBBLE_TEMP_CACHE_FILENAME);
+            File cache = context.getFileStreamPath(SCROBBLE_CACHE_FILENAME);
+            tmp.renameTo(cache);
+        }
+        context.deleteFile(SCROBBLE_TEMP_CACHE_FILENAME);
+    }
+
+    private static String scrobbleCacheChunk(Config config,
+                                             Context context,
+                                             String artist,
+                                             BufferedReader buf) 
+                throws IOException, InterruptedException {    	
+        String sessionKey = getSessionKey(context,  config,  true);
+        
+        ArrayList<NameValuePair> vals = new ArrayList<NameValuePair>(4);
+        vals.add(new BasicNameValuePair(SESSION_KEY_ARG, sessionKey));
+        vals.add(new BasicNameValuePair(API_KEY_ARG, API_KEY));
+        vals.add(new BasicNameValuePair(METHOD_ARG, SCROBBLE));
+        
+        int i = 0;
+        while (artist != null && i < MAX_SCROBBLE_SIZE) {
+            String title = buf.readLine();
+            String timestamp = buf.readLine();
+
+            Log.d("TeaCup", "cache adding " + artist + ", " + title + ", " + timestamp);
+            
+            String artist_arg = String.format(Locale.ENGLISH, ITH_ARTIST, i);
+            String title_arg = String.format(Locale.ENGLISH, ITH_TITLE, i);
+            String timestamp_arg = String.format(Locale.ENGLISH, ITH_TIMESTAMP, i);
+            
+            vals.add(new BasicNameValuePair(artist_arg, artist));
+            vals.add(new BasicNameValuePair(title_arg, title));
+            vals.add(new BasicNameValuePair(timestamp_arg, timestamp));
+    
+            artist = buf.readLine();
+            ++i;
+        }
+
+        Log.d("TeaCup", "sending batch!");
+
+        String apiSig = makeApiSig(vals);
+        vals.add(new BasicNameValuePair(API_SIG_ARG, apiSig));
+
+        boolean ok = lfmIsOK(postRequest(SECURE_API_ROOT, vals));
+        if (!ok) {
+            Log.d("TeaCup", "retrying batch scrobble");
+            // retry once with fresh key
+            sessionKey = getSessionKey(context, config, false);
+            vals.remove(vals.size() - 1);
+            resetNameValue(SESSION_KEY_ARG, sessionKey, vals);
+            apiSig = makeApiSig(vals);
+            vals.add(new BasicNameValuePair(API_SIG_ARG, apiSig));
+            //HttpResponse response = postRequest(SECURE_API_ROOT, vals);
+            //logIS(response.getEntity().getContent());
+            ok = lfmIsOK(postRequest(SECURE_API_ROOT, vals));
+            if (!ok)
+                throw new IOException("Failed to connect to lastfm!");
+        }
+
+        return artist;
+    }
 
 
     private static ScrobbleType getScrobbleType(Context context, Config config) {
@@ -362,16 +506,7 @@ public class LastFM {
     		String sessionKey = getSessionKey(context, config, true);
             String timestamp = Long.toString(time / 1000);
 
-            String apiSig = String.format(SCROBBLE_SIGNATURE_TEMPLATE,
-                                          artist,
-                                          sessionKey, 
-                                          timestamp,
-                                          title);
-            apiSig = md5Hash(apiSig);
-
             ArrayList<NameValuePair> vals = new ArrayList<NameValuePair>(4);
-            // always 0 and 1...
-            vals.add(new BasicNameValuePair(API_SIG_ARG, apiSig));
             vals.add(new BasicNameValuePair(SESSION_KEY_ARG, sessionKey));
             vals.add(new BasicNameValuePair(API_KEY_ARG, API_KEY));
             vals.add(new BasicNameValuePair(METHOD_ARG, SCROBBLE));
@@ -379,20 +514,22 @@ public class LastFM {
             vals.add(new BasicNameValuePair(TRACK_ARG, title));
             vals.add(new BasicNameValuePair(TIMESTAMP_ARG, timestamp));
 
+            String apiSig = makeApiSig(vals);
+            vals.add(new BasicNameValuePair(API_SIG_ARG, apiSig));
+
             boolean ok = lfmIsOK(postRequest(SECURE_API_ROOT, vals));
             if (!ok) {
                 Log.d("TeaCup", "retrying scrobble");
                 // retry once with fresh key
                 sessionKey = getSessionKey(context, config, false);
-                vals.set(1, new BasicNameValuePair(SESSION_KEY_ARG, sessionKey));
-                apiSig = String.format(SCROBBLE_SIGNATURE_TEMPLATE,
-                                       artist,
-                                       sessionKey, 
-                                       timestamp,
-                                       title);
-                apiSig = md5Hash(apiSig);
-                vals.set(0, new BasicNameValuePair(API_SIG_ARG, apiSig));
-                postRequest(SECURE_API_ROOT, vals);
+                vals.remove(vals.size() - 1);
+                resetNameValue(SESSION_KEY_ARG, sessionKey, vals);
+                apiSig = makeApiSig(vals);
+                vals.add(new BasicNameValuePair(API_SIG_ARG, apiSig));
+                ok = lfmIsOK(postRequest(SECURE_API_ROOT, vals));
+                if (!ok && config.getLastFMScrobbleCache()) {
+                	cacheScrobble(context, artist, title, time);
+                }
             }
 
     		Log.d("TeaCup", "done scrobble " + artist + ", " + title + ".");
@@ -415,12 +552,14 @@ public class LastFM {
     				fos = context.openFileOutput(SCROBBLE_CACHE_FILENAME, 
         				                         Context.MODE_PRIVATE);
     			}
-    			fos.write(artist.getBytes());
-    			fos.write("\n".getBytes());
-    			fos.write(title.getBytes());
-    			fos.write("\n".getBytes());
-    			fos.write(Long.toString(time).getBytes());
-    			fos.write("\n".getBytes());
+                BufferedOutputStream buf = new BufferedOutputStream(fos);
+    			buf.write(artist.getBytes());
+    			buf.write("\n".getBytes());
+    			buf.write(title.getBytes());
+    			buf.write("\n".getBytes());
+    			buf.write(Long.toString(time / 1000).getBytes());
+    			buf.write("\n".getBytes());
+                buf.flush();
     			fos.close();
     		} catch (FileNotFoundException e) {
     			Log.e("TeaCup", "cacheScrobble filenotfoundexception", e);
@@ -442,16 +581,7 @@ public class LastFM {
     		String sessionKey = getSessionKey(context, config, true);
     		String strLength = Long.toString(length / 1000);
     		
-            String apiSig = String.format(NOW_PLAYING_SIGNATURE_TEMPLATE, 
-                                          artist,
-                                          strLength,
-                                          sessionKey, 
-                                          title);
-            apiSig = md5Hash(apiSig);
-
             ArrayList<NameValuePair> vals = new ArrayList<NameValuePair>(6);
-            // always 0 and 1
-            vals.add(new BasicNameValuePair(API_SIG_ARG, apiSig));
             vals.add(new BasicNameValuePair(SESSION_KEY_ARG, sessionKey));
             vals.add(new BasicNameValuePair(API_KEY_ARG, API_KEY));
             vals.add(new BasicNameValuePair(METHOD_ARG, UPDATE_NOW_PLAYING));
@@ -459,19 +589,18 @@ public class LastFM {
             vals.add(new BasicNameValuePair(TRACK_ARG, title));
             vals.add(new BasicNameValuePair(DURATION_ARG, strLength));
 
+            String apiSig = makeApiSig(vals);
+            vals.add(new BasicNameValuePair(API_SIG_ARG, apiSig));
+
             boolean ok = lfmIsOK(postRequest(SECURE_API_ROOT, vals));
             if (!ok) {
                 Log.d("TeaCup", "retrying now playing");
                 // retry once with fresh key
                 sessionKey = getSessionKey(context, config, false);
-                vals.set(1, new BasicNameValuePair(SESSION_KEY_ARG, sessionKey));
-                apiSig = String.format(NOW_PLAYING_SIGNATURE_TEMPLATE, 
-                                       artist,
-                                       strLength,
-                                       sessionKey, 
-                                       title);
-                apiSig = md5Hash(apiSig);
-                vals.set(0, new BasicNameValuePair(API_SIG_ARG, apiSig));
+                vals.remove(vals.size() - 1);
+                resetNameValue(SESSION_KEY_ARG, sessionKey, vals);
+                apiSig = makeApiSig(vals);
+                vals.add(new BasicNameValuePair(API_SIG_ARG, apiSig));
                 postRequest(SECURE_API_ROOT, vals);
             }
 
@@ -504,18 +633,14 @@ public class LastFM {
         
             // request key 
             if ("".equals(key)) {
-
-                String apiSig = String.format(SESSION_SIGNATURE_TEMPLATE, 
-                                              password,
-                                              username);
-                apiSig = md5Hash(apiSig);
-                
-                List<NameValuePair> vals = new ArrayList<NameValuePair>(5);
+                ArrayList<NameValuePair> vals = new ArrayList<NameValuePair>(5);
                 vals.add(new BasicNameValuePair(API_KEY_ARG, API_KEY));
-                vals.add(new BasicNameValuePair(API_SIG_ARG, apiSig));
                 vals.add(new BasicNameValuePair(METHOD_ARG, GET_MOBILE_SESSION));
                 vals.add(new BasicNameValuePair(USERNAME_ARG, username));
                 vals.add(new BasicNameValuePair(PASSWORD_ARG, password));
+
+                String apiSig = makeApiSig(vals);
+                vals.add(new BasicNameValuePair(API_SIG_ARG, apiSig));
 
                 HttpResponse response = postRequest(SECURE_API_ROOT, vals);
                 HttpEntity entity = response.getEntity();
@@ -861,6 +986,36 @@ public class LastFM {
     		}
     	} catch (IOException e) {
     		Log.d("TeaCup", "error logging input stream", e);
+    	}
+    }
+
+
+    private static final Comparator<NameValuePair> comparator 
+    	= new Comparator<NameValuePair>() {
+        	public int compare(NameValuePair p1, NameValuePair p2) {
+        		return p1.getName().compareTo(p2.getName());
+        	}
+    	};
+
+    private static String makeApiSig(ArrayList<NameValuePair> vals) {
+        Collections.sort(vals, comparator);
+        StringBuilder sb = new StringBuilder();
+        for (NameValuePair p : vals) {
+            sb.append(p.getName());
+            sb.append(p.getValue());
+        }
+        sb.append(API_SECRET);
+        return md5Hash(sb.toString());
+    }
+    
+    private static void resetNameValue(String name,
+    		                           String value,
+    		                           ArrayList<NameValuePair> vals) {
+    	for (int i = 0; i < vals.size(); ++i) {
+    		if (vals.get(i).getName().equals(name)) {
+    			vals.set(i, new BasicNameValuePair(name, value));
+    			return;
+    		}
     	}
     }
 

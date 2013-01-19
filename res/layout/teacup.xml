@@ -23,7 +23,8 @@
         android:layout_height="match_parent"
         android:orientation="horizontal"
         android:layout_toRightOf="@id/albumArtButton"
-        android:layout_gravity="center_vertical">
+        android:layout_gravity="center_vertical"
+        android:paddingLeft="5dp">
 
         <ImageButton
             android:id="@+id/jumpPrevButton"

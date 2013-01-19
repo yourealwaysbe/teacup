@@ -1,10 +1,14 @@
 package net.chilon.matt.teacup;
 
+import java.util.Locale;
+import java.util.Random;
+
 import net.chilon.matt.teacup.R;
 import android.app.Activity;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
@@ -23,7 +27,30 @@ public class TeaCupConfiguration extends Activity {
     private int teaCupId;
     
     private PrefetchLastFMArtTask prefetcher = null;
+    
+    private long lastFMCacheSize = 0;
 
+    private static String[] scrobblers = {
+    	"evil geniuses",
+    	"malevolent dictators",
+    	"funky soulsters",
+    	"randy terrorists",
+    	"purple dinosaurs",
+    	"blue whales",
+    	"territorial armchairs",
+    	"musical nerds",
+    	"marvelous luvvies",
+    	"skin and bones",
+    	"fantastic foxes",
+    	"hipsters and hackers",
+    	"manx cats",
+    	"heroic friendsters",
+    	"teetotal auctioneers",
+    	"ticklish sneezes"
+    };
+    
+    private static final String LASTFM_URL = "http://www.lastfm.com";
+    
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -44,6 +71,7 @@ public class TeaCupConfiguration extends Activity {
         showHideCustomOptions(config.getPlayer().getPlayerId());
         adjustLastFMVisibility();
         adjustScrobbleVisibility();
+        setLegalText();
         
         Button ok = (Button) findViewById(R.id.okbutton);
         ok.setOnClickListener(new OnClickListener() {
@@ -154,6 +182,13 @@ public class TeaCupConfiguration extends Activity {
     		prefetchOptions.setVisibility(View.GONE);
     		stopPrefetchLastFMAlbumArt();
     	}
+    	
+    	lastFMCacheSize = LastFM.getScrobbleCacheSize(this);
+    	String buttonText = String.format(Locale.ENGLISH, 
+    			                          getResources().getString(R.string.lastFMClearCache),
+    			                          lastFMCacheSize);
+    	Button button = (Button) findViewById(R.id.lastFMClearCache);
+    	button.setText(buttonText);
     }
 
 
@@ -172,6 +207,17 @@ public class TeaCupConfiguration extends Activity {
     	} else {
     		stopPrefetchLastFMAlbumArt();
     	}
+    }
+    
+    public void onClickLastFMClearCache(View view) {
+    	LastFM.clearScrobbleCache(this);
+    	adjustLastFMVisibility();
+    }
+    
+    public void onClickLastFMButton(View view) {
+    	Intent browserIntent = new Intent(Intent.ACTION_VIEW, 
+    			                          Uri.parse(LASTFM_URL));
+    	startActivity(browserIntent);
     }
     
     private void onClickLastFMArt() {
@@ -211,6 +257,15 @@ public class TeaCupConfiguration extends Activity {
     		authOpts.setVisibility(View.VISIBLE);
     	else
     		authOpts.setVisibility(View.GONE);
+    }
+    
+    private void setLegalText() {
+    	TextView text = (TextView) findViewById(R.id.lastFMLegalText);
+    	String lastFMLegal = getResources().getString(R.string.lastFMLegalText);
+    	Random rand = new Random();
+    	rand.setSeed(System.currentTimeMillis());
+    	String desc = scrobblers[rand.nextInt(scrobblers.length)];
+    	text.setText(String.format(lastFMLegal, desc));
     }
 
 

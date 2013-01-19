@@ -124,7 +124,7 @@
             android:text="@string/lastFMCacheWithMusic"
             android:onClick="onClickLastFMCacheRadioGroup" />
     </RadioGroup>
-    
+        
     <EditText
         android:id="@+id/lastFMDirectory"
         android:layout_width="match_parent"
@@ -183,11 +183,21 @@
 	    android:text="@string/lastFMScrobbleCache"
 	    android:onClick="onClickLastFMScrobbleOptions"/>    
 	
+	<Button
+        android:id="@+id/lastFMClearCache"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/lastFMScrobbleCache"
+        android:layout_centerHorizontal="true"
+		android:text="@string/lastFMClearCache"
+        android:onClick="onClickLastFMClearCache" />
+	
+	
 	<LinearLayout
 	    android:id="@+id/lastFMAuthentication"
 	    android:layout_width="match_parent"
 	    android:layout_height="wrap_content"
-	    android:layout_below="@id/lastFMScrobbleCache"
+	    android:layout_below="@id/lastFMClearCache"
 	    android:orientation="vertical"
 	    android:visibility="gone">
 	    
@@ -551,14 +561,26 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/okCancelLine"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
         
         <TextView
             android:id="@+id/lastFMLegalText"
             android:layout_width="0dp"
-            android:layout_weight="1"
+            android:layout_weight="10"
             android:layout_height="wrap_content"
             android:text="@string/lastFMLegalText" />
+        
+        <ImageButton
+            android:id="@+id/lastFMButton"
+            android:layout_width="0dp"
+            android:layout_weight="4"
+            android:layout_height="50dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/lastfm"
+            android:contentDescription="@string/lastFMButtonHint"
+            android:scaleType="fitCenter"
+            android:onClick="onClickLastFMButton" />
         
     </LinearLayout>
 

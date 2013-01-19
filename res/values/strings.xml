@@ -16,7 +16,7 @@
     <string name="lastFMPrefetchAlbumArt">Prefetch Album Art</string>
     <string name="lastFMPrefetchAlbumArtNoConnection">Prefetch Album Art\n(No Connection)</string>
     <string name="lastFMPrefetchAlbumArtAgain">Fetch Again</string>
-    <string name="lastFMLegalText">Last FM features powered by AudioScrobbler.</string>
+    <string name="lastFMLegalText">Last FM features powered by the %s at AudioScrobbler.</string>
     
     <string name="lastFMScrobbleWifi">Scrobble to Last FM (WiFi)</string>
     <string name="lastFMScrobbleNetwork">Scrobble to Last FM (Phone network)</string>
@@ -25,6 +25,8 @@
     <string name="lastFMUserNameHint">Your Last FM username.</string>
     <string name="lastFMPasswordDesc">Last FM password</string>
     <string name="lastFMPasswordHint">Your Last FM password.</string>
+    <string name="lastFMClearCache">Clear Scrobble Cache \n (Cur. Size: %d bytes.)</string>
+    <string name="lastFMButtonHint">Last FM</string>
     
     <string name="playPauseDesc">Play/Pause.</string>
     <string name="noartist">Shh!</string>
