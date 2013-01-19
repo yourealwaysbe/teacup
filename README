@@ -1,12 +1,16 @@
 
-A simple desktop music widget for Android works with stock player by default but
-allows configuration for (hopefully) any player.  
+A desktop music widget for Android works with stock player by default but allows
+configuration for (hopefully) any player.  Can interact with Last FM: getting
+album art and scrobbling (choose when to connect, can cache when offline).
 
 Play, prev, next buttons.  Press album art to open the music player.
 
 Configurable album art options: get embedded art, images in the same directory
 as the music file, or fetch album art from Last FM.  Can also pre-fetch album
 art from Last FM.
+
+Scrobbling to Last FM: when on wifi and/or phone network.  Can store scrobbles
+in a cache when no connection (will be sent when connection returns).
 
 Written and tested for Android 2.3.3 (Android 10) on a Samsung Galaxy Mini 2,
 but seems to compile and work in emulators for 4.2 (Android 17).
@@ -64,6 +68,8 @@ ICONS:
 
     Teacup Logo is free clipart:
     http://www.wpclipart.com/food/beverages/tea/teacup.png.html
+
+    Last FM Logo came from them: www.last.fm (uh, powered by AudioScrobbler).
 
     Everything else i self-gimped.
 
