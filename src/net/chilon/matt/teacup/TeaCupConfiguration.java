@@ -46,7 +46,10 @@ public class TeaCupConfiguration extends Activity {
     	"manx cats",
     	"heroic friendsters",
     	"teetotal auctioneers",
-    	"ticklish sneezes"
+    	"ticklish sneezes",
+    	"jive bunnies",
+    	"squeezed lemons",
+    	"kinder surprises"
     };
     
     private static final String LASTFM_URL = "http://www.lastfm.com";
