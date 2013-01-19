@@ -358,12 +358,18 @@ public class LastFM {
 	}
 	
 	public static long getScrobbleCacheSize(Context context) {
-		File cache = context.getFileStreamPath(SCROBBLE_CACHE_FILENAME);
-		return cache.length();
+		long length = 0;
+		synchronized (SCROBBLE_CACHE_FILENAME) {
+			File cache = context.getFileStreamPath(SCROBBLE_CACHE_FILENAME);
+			length = cache.length();
+		}
+		return length;
 	}
 	
 	public static void clearScrobbleCache(Context context) {
-		context.deleteFile(SCROBBLE_CACHE_FILENAME);
+		synchronized (SCROBBLE_CACHE_FILENAME) {
+			context.deleteFile(SCROBBLE_CACHE_FILENAME);
+		}
 	}
 
     private static void cutDownCacheFile(Context context, int num) {

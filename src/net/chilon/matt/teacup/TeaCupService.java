@@ -212,7 +212,7 @@ public class TeaCupService extends Service {
     }
 
 
-    private class UpdateMetaTask extends AsyncTask<UpdateMetaArgs, Void, Void> {
+    private class UpdateMetaTask extends AsyncTask<UpdateMetaArgs, Boolean, Void> {
 
     	// signals we've already released the updateMetaLock
     	private boolean unlocked = false;
@@ -233,7 +233,7 @@ public class TeaCupService extends Service {
                 currentMetaLock.unlock();
         }
 
-    	protected void onProgressUpdate(Void... args) {
+    	protected void onProgressUpdate(Boolean... done) {
             if (!isCancelled()) {
                 if (currentMeta != null) {
                     updateWidget(currentMeta.artist, 
@@ -243,9 +243,8 @@ public class TeaCupService extends Service {
                     resetWidget();
                 }
             }
-            // technically we still need to set the album art, but that's not used anywhere
-            // so we can release the lock early.
-            if (!unlocked) {
+            
+            if (!unlocked && (done[0] || isCancelled())) {
             	unlocked = true;
             	currentMetaLock.unlock();
             }
@@ -256,9 +255,11 @@ public class TeaCupService extends Service {
         	currentMeta = getMeta(config, context, intent);
             
             if (currentMeta != null) {
-                publishProgress();
-                currentMeta.artBmp = getArtBmp(config, context, currentMeta);
-                publishProgress();
+                publishProgress(false);
+                if (!isCancelled()) {
+                	currentMeta.artBmp = getArtBmp(config, context, currentMeta);
+                	publishProgress(true);
+                }
             }
 
             UpdateLastFMArgs args = new UpdateLastFMArgs();
