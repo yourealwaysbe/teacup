@@ -1,6 +1,6 @@
 /**
  * Copyright 2013 Matthew Hague
- * Released under the GNU General Public License (see GPL.txt)
+ * Released under the GNU General Public License v3 (see GPL.txt)
  */
 
 package net.chilon.matt.teacup;
@@ -335,9 +335,9 @@ public class LastFM {
 
                     didFile = true;
                 } catch (IOException e) {
-                    Log.e("TeaCup", "cacheScrobble ioexception", e);
+                    Log.w("TeaCup", "cacheScrobble ioexception", e);
                 } catch (InterruptedException e) {
-                	Log.e("TeaCup", "cacheScrobble interruptedexception", e);
+                	Log.w("TeaCup", "cacheScrobble interruptedexception", e);
                 }
             }
 
@@ -357,7 +357,7 @@ public class LastFM {
                     }
                 }
             } catch (IOException e) {
-                Log.e("TeaCup", "scrobbleCache ioexception", e);
+                Log.w("TeaCup", "scrobbleCache ioexception", e);
             }
     	}
 	}
@@ -406,9 +406,9 @@ public class LastFM {
 
             copied = true;
         } catch (FileNotFoundException e) { 
-        	Log.e("TeaCup", "cutDownCacheFile filenotfoundexception", e);
+        	Log.w("TeaCup", "cutDownCacheFile filenotfoundexception", e);
     	} catch (IOException e) {
-    		Log.e("TeaCup", "cutDownCacheFile ioexception", e);
+    		Log.w("TeaCup", "cutDownCacheFile ioexception", e);
     	} finally {
             try {
                 if (fis != null)
@@ -545,7 +545,7 @@ public class LastFM {
 
     		Log.d("TeaCup", "done scrobble " + artist + ", " + title + ".");
     	} catch (IOException e) {
-    		Log.e("TeaCup", "scrobble ioexception", e);
+    		Log.w("TeaCup", "scrobble ioexception", e);
     	}
     }
 
@@ -767,7 +767,7 @@ public class LastFM {
 					InputStream is = url.getInputStream();
 					artBmp = AlbumArtFactory.readStream(is);
 				} catch (MalformedURLException e) {
-					Log.e("TeaCup", "LastFM produced a malformed url!" + artUrl);
+					Log.w("TeaCup", "LastFM produced a malformed url!" + artUrl);
 				} catch (IOException e) {
 					Log.d("TeaCup", "ioexception:", e);
 				}

@@ -1,6 +1,6 @@
 /**
  * Copyright 2013 Matthew Hague
- * Released under the GNU General Public License (see GPL.txt)
+ * Released under the GNU General Public License v3 (see GPL.txt)
  */
 
 package net.chilon.matt.teacup;
