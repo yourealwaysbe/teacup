@@ -32,9 +32,9 @@ import android.widget.RemoteViews;
 public class TeaCupService extends Service {
 
     public final static String TEACUP_SERVICE = "TeaCupService";
-    
+
     private static final int INVALID_ID = -1;
-    
+
     private class MetaData {
         String artist = null;
         String album = null;
@@ -47,33 +47,33 @@ public class TeaCupService extends Service {
     // ugh, concurrency...
     // meta data updated by asynctask because of database lookup
     // but as soon as updatemeta broadcast received we know currentMeta is out of
-    // date, so we lock it so a change to playstate doesn't scrobble out of date 
-    // meta data: updatelastfm task has to wait for the current meta lock before 
+    // date, so we lock it so a change to playstate doesn't scrobble out of date
+    // meta data: updatelastfm task has to wait for the current meta lock before
     // scrobble update.
     ReentrantLock currentMetaLock = new ReentrantLock();
     MetaData currentMeta = null;
     private boolean currentlyPlaying = false;
 
-	private static UpdateMetaTask previousMeta = null;
+    private static UpdateMetaTask previousMeta = null;
 
     BroadcastReceiver receiver = null;
-   
-	
-    
+
+
+
     public void onCreate() {
-    	Log.d("TeaCup", "creating service receiver: " + receiver);
-    	makeReceiver();
+        Log.d("TeaCup", "creating service receiver: " + receiver);
+        makeReceiver();
     }
-   
+
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d("TeaCup", "on start command service");
-    	makeReceiver();
+        makeReceiver();
         return START_STICKY;
     }
 
     public void onDestroy() {
-    	Log.d("TeaCup", "Destroying service");
+        Log.d("TeaCup", "Destroying service");
         if (receiver != null)
             unregisterReceiver(receiver);
         receiver = null;
@@ -84,58 +84,58 @@ public class TeaCupService extends Service {
         // TODO Auto-generated method stub
         return null;
     }
-    
+
     private void makeReceiver() {
-    	if (receiver != null)
-    		unregisterReceiver(receiver);
-    	
+        if (receiver != null)
+            unregisterReceiver(receiver);
+
         Config config = new Config(getApplicationContext());
         IntentFilter filter = new IntentFilter();
         filter.addAction(config.getPlayer().getMetaChangedAction());
         filter.addAction(config.getPlayer().getPlaystateChangedAction());
-     
+
         filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-        
+
         receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-            	Config config = new Config(context);
-            	PlayerConfig player = config.getPlayer();
-            	String action = intent.getAction();
-            	
-            	Log.d("TeaCup", "received " + action);
-            	
+                Config config = new Config(context);
+                PlayerConfig player = config.getPlayer();
+                String action = intent.getAction();
+
+                Log.d("TeaCup", "received " + action);
+
                 if (player.getMetaChangedAction().equals(action)) {
                     updateMeta(config, context, intent);
                 }
-                	
+
                 if (player.getPlaystateChangedAction().equals(action)) {
-                	updatePlaystate(config, context, intent);
+                    updatePlaystate(config, context, intent);
                 }
-                
+
                 if (ConnectivityManager.CONNECTIVITY_ACTION.equals(action)) {
-                	doConnectivityChange(config, context);
+                    doConnectivityChange(config, context);
                 }
             }
         };
         registerReceiver(receiver, filter);
     }
-    
+
     private void doConnectivityChange(Config config, Context context) {
-    	UpdateLastFMArgs args = new UpdateLastFMArgs();
-    	args.config = config;
-    	args.context = context;
-    	
-    	new UpdateLastFMTask().execute(args);
-    	new LastFMScrobbleCacheTask().execute(args);
+        UpdateLastFMArgs args = new UpdateLastFMArgs();
+        args.config = config;
+        args.context = context;
+
+        new UpdateLastFMTask().execute(args);
+        new LastFMScrobbleCacheTask().execute(args);
     }
 
 
     private void updateMeta(Config config,
                             Context context,
                             Intent intent) {
-        if (previousMeta != null) 
-        	previousMeta.cancel(true);
+        if (previousMeta != null)
+            previousMeta.cancel(true);
 
         UpdateMetaArgs args = new UpdateMetaArgs();
         args.config = config;
@@ -151,24 +151,24 @@ public class TeaCupService extends Service {
     private void updatePlaystate(Config config,
                                  Context context,
                                  Intent intent) {
-    	try {
+        try {
             String playState = config.getPlayer().getPlaystateChangedPlaying();
             currentlyPlaying = intent.getBooleanExtra(playState, false);
-    		Bitmap playButton = getPlayButton(currentlyPlaying);
-    		updateWidgetPlay(playButton);
-    		
+            Bitmap playButton = getPlayButton(currentlyPlaying);
+            updateWidgetPlay(playButton);
+
             UpdateLastFMArgs args = new UpdateLastFMArgs();
             args.config = config;
             args.context = context;
             new UpdateLastFMTask().execute(args);
-    	} catch (Exception e) {
-    		Log.e("TeaCup", "Error updating playstate.", e);
-    	}
+        } catch (Exception e) {
+            Log.e("TeaCup", "Error updating playstate.", e);
+        }
     }
-    
+
     private Bitmap getPlayButton(boolean playing) {
-    	int imgId = playing ? R.drawable.ic_pause : R.drawable.ic_play;
-    	return BitmapFactory.decodeResource(getResources(), imgId);
+        int imgId = playing ? R.drawable.ic_pause : R.drawable.ic_play;
+        return BitmapFactory.decodeResource(getResources(), imgId);
     }
 
     private void updateWidget(String artist,
@@ -186,29 +186,29 @@ public class TeaCupService extends Service {
             views.setImageViewBitmap(R.id.albumArtButton, artBmp);
 
         ComponentName thisWidget = new ComponentName(this, TeaCup.class);
-        
+
         appWidgetManager.updateAppWidget(thisWidget, views);
     }
 
-    
+
     private void updateWidgetPlay(Bitmap playButton) {
-    	AppWidgetManager appWidgetManager
-    		= AppWidgetManager.getInstance(this);
-    	RemoteViews views = new RemoteViews(getPackageName(),
+        AppWidgetManager appWidgetManager
+            = AppWidgetManager.getInstance(this);
+        RemoteViews views = new RemoteViews(getPackageName(),
                                             R.layout.teacup);
 
-    	views.setImageViewBitmap(R.id.playPauseButton, playButton);
+        views.setImageViewBitmap(R.id.playPauseButton, playButton);
 
-    	ComponentName thisWidget = new ComponentName(this, TeaCup.class);
-    	appWidgetManager.updateAppWidget(thisWidget, views);
+        ComponentName thisWidget = new ComponentName(this, TeaCup.class);
+        appWidgetManager.updateAppWidget(thisWidget, views);
     }
-    
-    
+
+
     private void resetWidget() {
         String artist = getResources().getString(R.string.noartist);
         String title = getResources().getString(R.string.notitle);
         Bitmap artBmp = getDefaultArt(this);
-	
+
         updateWidget(artist, title, artBmp);
     }
 
@@ -218,9 +218,9 @@ public class TeaCupService extends Service {
     }
 
 
-    
+
     private class UpdateMetaArgs {
-    	Config config;
+        Config config;
         Context context;
         Intent intent;
     }
@@ -228,51 +228,51 @@ public class TeaCupService extends Service {
 
     private class UpdateMetaTask extends AsyncTask<UpdateMetaArgs, Boolean, Void> {
 
-    	// signals we've already released the updateMetaLock
-    	private boolean unlocked = false;
-    	
-    	protected Void doInBackground(UpdateMetaArgs... args) {
-    		try {
-            	updateMeta(args[0].config,
+        // signals we've already released the updateMetaLock
+        private boolean unlocked = false;
+
+        protected Void doInBackground(UpdateMetaArgs... args) {
+            try {
+                updateMeta(args[0].config,
                            args[0].context,
-            			   args[0].intent);
+                           args[0].intent);
             } catch (Exception e) {
-            	Log.e("TeaCupReceiver", "Error updating meta.", e);
+                Log.e("TeaCupReceiver", "Error updating meta.", e);
             }
             return null;
-    	}
+        }
 
         protected void onPostExecute(Void args) {
             if (!unlocked)
                 currentMetaLock.unlock();
         }
 
-    	protected void onProgressUpdate(Boolean... done) {
+        protected void onProgressUpdate(Boolean... done) {
             if (!isCancelled()) {
                 if (currentMeta != null) {
-                    updateWidget(currentMeta.artist, 
-                                 currentMeta.title, 
+                    updateWidget(currentMeta.artist,
+                                 currentMeta.title,
                                  currentMeta.artBmp);
                 } else {
                     resetWidget();
                 }
             }
-            
+
             if (!unlocked && (done[0] || isCancelled())) {
-            	unlocked = true;
-            	currentMetaLock.unlock();
+                unlocked = true;
+                currentMetaLock.unlock();
             }
         }
 
 
         private void updateMeta(Config config, Context context, Intent intent) {
-        	currentMeta = getMeta(config, context, intent);
-            
+            currentMeta = getMeta(config, context, intent);
+
             if (currentMeta != null) {
                 publishProgress(false);
                 if (!isCancelled()) {
-                	currentMeta.artBmp = getArtBmp(config, context, currentMeta);
-                	publishProgress(true);
+                    currentMeta.artBmp = getArtBmp(config, context, currentMeta);
+                    publishProgress(true);
                 }
             }
 
@@ -335,11 +335,11 @@ public class TeaCupService extends Service {
             if (artBmp == null && getDirectoryArt)
                 artBmp = getImageFromDirectory(meta.filename);
             if (artBmp == null) {
-                artBmp = LastFM.getArt(context, 
-                		               config, 
-                		               meta.artist, 
-                		               meta.album, 
-                		               meta.filename);
+                artBmp = LastFM.getArt(context,
+                                       config,
+                                       meta.artist,
+                                       meta.album,
+                                       meta.filename);
             }
 
             if (artBmp == null) {
@@ -400,26 +400,26 @@ public class TeaCupService extends Service {
     }
 
     private class UpdateLastFMArgs {
-    	Config config;
-    	Context context;
+        Config config;
+        Context context;
     }
 
     private class UpdateLastFMTask extends AsyncTask<UpdateLastFMArgs, Void, Void> {
 
-    	protected Void doInBackground(UpdateLastFMArgs... args) {
-    		try {
-    			String artist = null;
-    			String title = null;
-    			long length = 0;
-    			
-    			currentMetaLock.lock();
+        protected Void doInBackground(UpdateLastFMArgs... args) {
+            try {
+                String artist = null;
+                String title = null;
+                long length = 0;
+
+                currentMetaLock.lock();
                 if (currentMeta != null) {
                     artist = currentMeta.artist;
                     title = currentMeta.title;
                     length = currentMeta.length;
                 }
                 currentMetaLock.unlock();
-                
+
                 if (artist != null && title != null) {
                     LastFM.scrobbleUpdate(args[0].context,
                                           args[0].config,
@@ -429,21 +429,21 @@ public class TeaCupService extends Service {
                                           currentlyPlaying);
                 }
             } catch (Exception e) {
-            	Log.e("TeaCupReceiver", "Error updating meta.", e);
+                Log.e("TeaCupReceiver", "Error updating meta.", e);
             }
             return null;
-    	}
+        }
     }
-    
+
     private class LastFMScrobbleCacheTask extends AsyncTask<UpdateLastFMArgs, Void, Void> {
 
-    	protected Void doInBackground(UpdateLastFMArgs... args) {
-    		try {
-    			LastFM.scrobbleCache(args[0].config, args[0].context);
+        protected Void doInBackground(UpdateLastFMArgs... args) {
+            try {
+                LastFM.scrobbleCache(args[0].config, args[0].context);
             } catch (Exception e) {
-            	Log.e("TeaCupReceiver", "Error updating meta.", e);
+                Log.e("TeaCupReceiver", "Error updating meta.", e);
             }
             return null;
-    	}
+        }
     }
 }

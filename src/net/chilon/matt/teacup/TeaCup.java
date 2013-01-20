@@ -25,26 +25,26 @@ public class TeaCup extends AppWidgetProvider {
 
     @Override
     public void onDeleted(Context context, int[] appWidgetIds) {
-    	Log.d("TeaCup", "deleted widget");
+        Log.d("TeaCup", "deleted widget");
         super.onDeleted(context, appWidgetIds);
     }
 
     @Override
     public void onDisabled(Context context) {
-    	Log.d("TeaCup", "disabled widget, stopping service");
+        Log.d("TeaCup", "disabled widget, stopping service");
         ServiceStarter.stopService(context);
         super.onDisabled(context);
     }
 
     @Override
     public void onEnabled(Context context) {
-    	Log.d("TeaCup", "enabled widget");
+        Log.d("TeaCup", "enabled widget");
         super.onEnabled(context);
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
-    	Log.d("TeaCup", "widget received");
+        Log.d("TeaCup", "widget received");
         String action = intent.getAction();
         Log.d("TeaCup", "got " + action);
         if (action.equals(BTN_JUMP_NEXT)) {
@@ -63,7 +63,7 @@ public class TeaCup extends AppWidgetProvider {
     public void onUpdate(Context context,
                          AppWidgetManager appWidgetManager,
                          int[] appWidgetIds) {
-    	Log.d("TeaCup", "update called with " + appWidgetIds.length + " ids");
+        Log.d("TeaCup", "update called with " + appWidgetIds.length + " ids");
         Config config = new Config(context);
         makeButtons(context, appWidgetManager, appWidgetIds, config);
         ServiceStarter.restartService(context);

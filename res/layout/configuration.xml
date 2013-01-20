@@ -56,7 +56,7 @@
         android:checked="true"
         android:text="@string/getLastFMArtNetwork"
         android:onClick="onClickGetLastFMArtNetwork" />
-        
+
     <LinearLayout
         android:id="@+id/lastFMCacheLine"
         android:layout_width="match_parent"
@@ -127,7 +127,7 @@
             android:text="@string/lastFMCacheWithMusic"
             android:onClick="onClickLastFMCacheRadioGroup" />
     </RadioGroup>
-        
+
     <EditText
         android:id="@+id/lastFMDirectory"
         android:layout_width="match_parent"
@@ -136,7 +136,7 @@
         android:layout_below="@id/selectLastFMCacheRadioGroup"
         android:visibility="gone"
         android:hint="@string/lastFMDirectoryHint" />
-    
+
     <LinearLayout
         android:id="@+id/prefetchOptions"
         android:layout_width="match_parent"
@@ -144,97 +144,105 @@
         android:layout_below="@id/lastFMDirectory"
         android:orientation="vertical"
         android:gravity="center">
-    	<Button
-        	android:id="@+id/prefetchLastFMArt"
-        	android:layout_width="200dp"
-        	android:layout_height="wrap_content"
-			android:text="@string/lastFMPrefetchAlbumArt"
-        	android:onClick="onClickPrefetchLastFMArt" />
+        <Button
+            android:id="@+id/prefetchLastFMArt"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:text="@string/lastFMPrefetchAlbumArt"
+            android:onClick="onClickPrefetchLastFMArt" />
 
-    	<ProgressBar 
-        	android:id="@+id/prefetchProgressBar"
-        	android:layout_width="match_parent"
-        	android:layout_height="wrap_content"
-        	android:max="100"
-        	style="@android:style/Widget.ProgressBar.Horizontal"
-        	android:visibility="gone"
-        	android:progress="0"
-        	android:indeterminate="false"/>
+        <ProgressBar
+            android:id="@+id/prefetchProgressBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:visibility="gone"
+            android:progress="0"
+            android:indeterminate="false"/>
     </LinearLayout>
-    	
-	<CheckBox 
-	    android:id="@+id/lastFMScrobbleWifi"
-	    android:layout_width="match_parent"
-	    android:layout_height="wrap_content"
-	    android:layout_below="@id/prefetchOptions"
-	    android:text="@string/lastFMScrobbleWifi"
-	    android:onClick="onClickLastFMScrobbleOptions"/>    
 
-	<CheckBox 
-	    android:id="@+id/lastFMScrobbleNetwork"
-	    android:layout_width="match_parent"
-	    android:layout_height="wrap_content"
-	    android:layout_below="@id/lastFMScrobbleWifi"
-	    android:text="@string/lastFMScrobbleNetwork"
-	    android:onClick="onClickLastFMScrobbleOptions"/>    
-	
-	<CheckBox 
-	    android:id="@+id/lastFMScrobbleCache"
-	    android:layout_width="match_parent"
-	    android:layout_height="wrap_content"
-	    android:layout_below="@id/lastFMScrobbleNetwork"
-	    android:text="@string/lastFMScrobbleCache"
-	    android:onClick="onClickLastFMScrobbleOptions"/>    
-	
-	<Button
+    <TextView
+        android:id="@+id/lastFMScrobbleOptions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/lastFMScrobbleOptions"
+        android:layout_below="@id/prefetchOptions"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <CheckBox
+        android:id="@+id/lastFMScrobbleWifi"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/lastFMScrobbleOptions"
+        android:text="@string/lastFMScrobbleWifi"
+        android:onClick="onClickLastFMScrobbleOptions"/>
+
+    <CheckBox
+        android:id="@+id/lastFMScrobbleNetwork"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/lastFMScrobbleWifi"
+        android:text="@string/lastFMScrobbleNetwork"
+        android:onClick="onClickLastFMScrobbleOptions"/>
+
+    <CheckBox
+        android:id="@+id/lastFMScrobbleCache"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/lastFMScrobbleNetwork"
+        android:text="@string/lastFMScrobbleCache"
+        android:onClick="onClickLastFMScrobbleOptions"/>
+
+    <Button
         android:id="@+id/lastFMClearCache"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:layout_below="@id/lastFMScrobbleCache"
         android:layout_centerHorizontal="true"
-		android:text="@string/lastFMClearCache"
+        android:text="@string/lastFMClearCache"
         android:onClick="onClickLastFMClearCache" />
-	
-	
-	<LinearLayout
-	    android:id="@+id/lastFMAuthentication"
-	    android:layout_width="match_parent"
-	    android:layout_height="wrap_content"
-	    android:layout_below="@id/lastFMClearCache"
-	    android:orientation="vertical"
-	    android:visibility="gone">
-	    
-	    <TextView
-	        android:id="@+id/lastFMUserNameDesc"
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:text="@string/lastFMUserNameDesc"
+
+
+    <LinearLayout
+        android:id="@+id/lastFMAuthentication"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/lastFMClearCache"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/lastFMUserNameDesc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/lastFMUserNameDesc"
             android:textAppearance="?android:attr/textAppearanceLarge"  />
-	   
-	    <EditText
-	        android:id="@+id/lastFMUserName"
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:inputType="text" 
-	        android:hint="@string/lastFMUserNameHint"/>
-	    
-	    <TextView
-	        android:id="@+id/lastFMPasswordDesc"
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:text="@string/lastFMPasswordDesc"
+
+        <EditText
+            android:id="@+id/lastFMUserName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:hint="@string/lastFMUserNameHint"/>
+
+        <TextView
+            android:id="@+id/lastFMPasswordDesc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/lastFMPasswordDesc"
             android:textAppearance="?android:attr/textAppearanceLarge"  />
-	    
-	    <EditText
-	        android:id="@+id/lastFMPassword"
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:inputType="textPassword" 
-	        android:hint="@string/lastFMPasswordHint"/>
-	    	    
-	</LinearLayout>
-		
-    
+
+        <EditText
+            android:id="@+id/lastFMPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"
+            android:hint="@string/lastFMPasswordHint"/>
+
+    </LinearLayout>
+
+
     <LinearLayout
         android:id="@+id/playerSelectedLine"
         android:layout_width="match_parent"
@@ -558,7 +566,7 @@
                android:text="@string/cancel"
                android:id="@+id/cancelbutton"></Button>
     </LinearLayout>
-    
+
     <LinearLayout
         android:id="@+id/lastFMLegalLine"
         android:layout_width="match_parent"
@@ -566,14 +574,14 @@
         android:layout_below="@id/okCancelLine"
         android:orientation="horizontal"
         android:gravity="center_vertical">
-        
+
         <TextView
             android:id="@+id/lastFMLegalText"
             android:layout_width="0dp"
             android:layout_weight="10"
             android:layout_height="wrap_content"
             android:text="@string/lastFMLegalText" />
-        
+
         <ImageButton
             android:id="@+id/lastFMButton"
             android:layout_width="0dp"
@@ -584,7 +592,7 @@
             android:contentDescription="@string/lastFMButtonHint"
             android:scaleType="fitCenter"
             android:onClick="onClickLastFMButton" />
-        
+
     </LinearLayout>
 
 </RelativeLayout>

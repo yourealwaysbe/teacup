@@ -24,8 +24,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -52,54 +54,67 @@ import android.util.Log;
 import android.content.SharedPreferences;
 
 public class LastFM {
-	
+
     public enum PrefetchState {
         OK, NOCONNECTION, CANCELLED
     }
-	
-	private static final int URL_TIMEOUT = 5000;
+
+    private static final int URL_TIMEOUT = 5000;
 
     private static final String SCROBBLE_CACHE_FILENAME = "scrobble-cache";
     private static final String SCROBBLE_TEMP_CACHE_FILENAME = "temp-scrobble-cache";
-	
-	private static final String API_KEY = "d6e802774ce70edfca5d501009377a53";
+
+    private static final String API_KEY = "d6e802774ce70edfca5d501009377a53";
     private static final String API_SECRET = "9320d44c69440dfe648bca72140fecb2";
-	private static final String API_ROOT = "http://ws.audioscrobbler.com/2.0/";
-	private static final String SECURE_API_ROOT = "https://ws.audioscrobbler.com/2.0/";
+    private static final String API_ROOT = "http://ws.audioscrobbler.com/2.0/";
+    private static final String SECURE_API_ROOT = "https://ws.audioscrobbler.com/2.0/";
 
     private static final String GET_ALBUM_INFO = "album.getinfo";
+    private static final String GET_ARTIST_INFO = "artist.getinfo";
     private static final String GET_MOBILE_SESSION = "auth.getMobileSession";
     private static final String UPDATE_NOW_PLAYING = "track.updateNowPlaying";
     private static final String SCROBBLE = "track.scrobble";
 
-	private static final String API_KEY_ARG = "api_key";
+    private static final String API_KEY_ARG = "api_key";
     private static final String API_SIG_ARG = "api_sig";
     private static final String METHOD_ARG = "method";
     private static final String SESSION_KEY_ARG = "sk";
     private static final String USERNAME_ARG = "username";
     private static final String PASSWORD_ARG = "password";
-	private static final String ARTIST_ARG = "artist";
-	private static final String ALBUM_ARG = "album";
+    private static final String ARTIST_ARG = "artist";
+    private static final String ALBUM_ARG = "album";
     private static final String TRACK_ARG = "track";
     private static final String TIMESTAMP_ARG = "timestamp";
     private static final String DURATION_ARG = "duration";
-	
-	private static final String IMAGE_TAG = "image";
-	private static final String IMAGE_SIZE = "large";
-	private static final String SIZE_ATTR = "size";
+
+    private static final String SIMILAR_TAG = "similar";
+    private static final String IMAGE_TAG = "image";
+    private static final String IMAGE_SIZE = "large";
+    private static final String SIZE_ATTR = "size";
     private static final String LFM_NAMESPACE = "";
     private static final String LFM_TAG = "lfm";
     private static final String LFM_STATUS_ATTR = "status";
     private static final String LFM_STATUS_OK = "ok";
 
+    private static final Set<String> SIMILAR_TAG_SET
+        = new HashSet<String>() {{
+            add(SIMILAR_TAG);
+        }};
+
     private static final String KEY_TAG = "key";
-	
-	private static final String ART_TEMPLATE 
+
+    private static final String ALBUM_ART_TEMPLATE
         = API_ROOT + "?" +
-	      API_KEY_ARG + "=" + API_KEY + "&" +
-	      METHOD_ARG + "=" + GET_ALBUM_INFO + "&" +
-	      ARTIST_ARG + "=%s&" +
-	      ALBUM_ARG + "=%s";
+          API_KEY_ARG + "=" + API_KEY + "&" +
+          METHOD_ARG + "=" + GET_ALBUM_INFO + "&" +
+          ARTIST_ARG + "=%s&" +
+          ALBUM_ARG + "=%s";
+
+    private static final String ARTIST_ART_TEMPLATE
+        = API_ROOT + "?" +
+          API_KEY_ARG + "=" + API_KEY + "&" +
+          METHOD_ARG + "=" + GET_ARTIST_INFO + "&" +
+          ARTIST_ARG + "=%s";
 
     private static final int MAX_SCROBBLE_SIZE = 50;
     private static final int NUM_SCROBBLE_FIELDS = 3;
@@ -107,25 +122,25 @@ public class LastFM {
     private static final String ITH_ARTIST = "artist[%d]";
     private static final String ITH_TITLE = "track[%d]";
 
-	private static final Bitmap.CompressFormat CACHE_TYPE = Bitmap.CompressFormat.PNG;
-	private static final String CACHE_EXT = ".png";
-	
-	// we're limited to 5 requests per second, so will call "makeRequest" before each connection
-	// and this will enforce the limit
-	private static final int MAX_REQUESTS = 5;
-	private static final int TIME_SLICE_LEN = 1000;
-	private static final int TIME_SAFETY_BUFFER = 10;
-	
-	private static long timeSliceBegin = -1;
-	private static int numRequests = 0;
+    private static final Bitmap.CompressFormat CACHE_TYPE = Bitmap.CompressFormat.PNG;
+    private static final String CACHE_EXT = ".png";
+
+    // we're limited to 5 requests per second, so will call "makeRequest" before each connection
+    // and this will enforce the limit
+    private static final int MAX_REQUESTS = 5;
+    private static final int TIME_SLICE_LEN = 1000;
+    private static final int TIME_SAFETY_BUFFER = 10;
+
+    private static long timeSliceBegin = -1;
+    private static int numRequests = 0;
 
 
     // Scrobbling
-	private enum ScrobbleType {
-		NOSCROBBLE, SCROBBLE, CACHE
-	};
-	
-	
+    private enum ScrobbleType {
+        NOSCROBBLE, SCROBBLE, CACHE
+    };
+
+
     private static final String PREFS_FILE = "lastfm";
     private static final String CUR_TRACK_ARTIST = "track-artist";
     private static final String CUR_TRACK_TITLE = "track-title";
@@ -138,100 +153,100 @@ public class LastFM {
     private static final long FOUR_MINUTES = 240000;
     private static final long THIRTY_SECONDS = 30000;
 
-	public static Bitmap getArt(Context context,
-			                    Config config, 
-			                    String artist, 
-			                    String album,
-			                    String filename) {
-		Bitmap artBmp = null;
-		try {
-			artBmp = getArtUnprotected(context, 
-					                   config,
-					                   artist,
-					                   album,
-					                   filename);
-			if (config.getLastFMCacheStyle() != Config.LASTFM_NO_CACHE)
-				artBmp = getCachedArt(config, artist, album, filename);
-				
-			if (artBmp == null) {
-				artBmp = getWebArt(context, config, artist, album, filename);
-				if (artBmp != null)
-					cacheBitmap(config, artist, album, filename, artBmp);
-			}
-		} catch (InterruptedException e) {
-			Log.w("TeaCup", "Last FM get art operation interrupted", e);
-		}
-			
-		return artBmp;
-	}
-	
-	public static PrefetchState prefetchArt(Context context, 
-			                                Config config, 
-			                                ProgressUpdater progress) {
-		try {
-			if (shouldConnectArt(config,  context)) {
-				String projection[] = {
-					MediaStore.Audio.Media.ARTIST,
-					MediaStore.Audio.Media.ALBUM,
-					MediaStore.Audio.Media.DATA
-				};
-				String selection = "";
-				ContentResolver resolver = context.getContentResolver();
-				Cursor result = resolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-						                       projection,
-	                                           selection,
-	                                           null,
-	                                           null);
-	        
-				int count = result.getCount();
-				int done = 0;
-				result.moveToFirst();
-				while (!result.isAfterLast() && !progress.getCancelled()) {
-					String artist = result.getString(0);
-					String album = result.getString(1);
-					String filename = result.getString(2);
-	    	
-					getArtUnprotected(context, 
-							          config, 
-							          artist, 
-							          album, 
-							          filename);
-	    	
-					++done;
-					progress.setProgressPercent((100*done)/count);
-	    	
-					result.moveToNext();
-				}
-			
-				if (progress.getCancelled())
-					return PrefetchState.CANCELLED;
-				else 
-					return PrefetchState.OK;
-			} else {
-				return PrefetchState.NOCONNECTION;
-			}
-		} catch (InterruptedException e) {
-			Log.w("TeaCup", "Last FM prefetch interrupted.", e);
-			return PrefetchState.CANCELLED;
-		}
-	}
+    public static Bitmap getArt(Context context,
+                                Config config,
+                                String artist,
+                                String album,
+                                String filename) {
+        Bitmap artBmp = null;
+        try {
+            artBmp = getArtUnprotected(context,
+                                       config,
+                                       artist,
+                                       album,
+                                       filename);
+            if (config.getLastFMCacheStyle() != Config.LASTFM_NO_CACHE)
+                artBmp = getCachedArt(config, artist, album, filename);
 
-	
-	public static void scrobbleUpdate(Context context,
-			                          Config config,
-                                      String artist, 
-                                      String title, 
+            if (artBmp == null) {
+                artBmp = getWebArt(context, config, artist, album);
+                if (artBmp != null)
+                    cacheBitmap(config, artist, album, filename, artBmp);
+            }
+        } catch (InterruptedException e) {
+            Log.w("TeaCup", "Last FM get art operation interrupted", e);
+        }
+
+        return artBmp;
+    }
+
+    public static PrefetchState prefetchArt(Context context,
+                                            Config config,
+                                            ProgressUpdater progress) {
+        try {
+            if (shouldConnectArt(config,  context)) {
+                String projection[] = {
+                    MediaStore.Audio.Media.ARTIST,
+                    MediaStore.Audio.Media.ALBUM,
+                    MediaStore.Audio.Media.DATA
+                };
+                String selection = "";
+                ContentResolver resolver = context.getContentResolver();
+                Cursor result = resolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                                               projection,
+                                               selection,
+                                               null,
+                                               null);
+
+                int count = result.getCount();
+                int done = 0;
+                result.moveToFirst();
+                while (!result.isAfterLast() && !progress.getCancelled()) {
+                    String artist = result.getString(0);
+                    String album = result.getString(1);
+                    String filename = result.getString(2);
+
+                    getArtUnprotected(context,
+                                      config,
+                                      artist,
+                                      album,
+                                      filename);
+
+                    ++done;
+                    progress.setProgressPercent((100*done)/count);
+
+                    result.moveToNext();
+                }
+
+                if (progress.getCancelled())
+                    return PrefetchState.CANCELLED;
+                else
+                    return PrefetchState.OK;
+            } else {
+                return PrefetchState.NOCONNECTION;
+            }
+        } catch (InterruptedException e) {
+            Log.w("TeaCup", "Last FM prefetch interrupted.", e);
+            return PrefetchState.CANCELLED;
+        }
+    }
+
+
+    public static void scrobbleUpdate(Context context,
+                                      Config config,
+                                      String artist,
+                                      String title,
                                       long trackLen,
                                       boolean playing) {
-		Log.d("TeaCup", "updateScrobble(" + artist + ", " + title + ", " + playing);
-        try { 
+        Log.d("TeaCup", "updateScrobble(" + artist + ", " + title + ", " + playing);
+        try {
             boolean scrobble = false;
             String scrobbleArtist = null;
             String scrobbleTitle = null;
             long scrobbleTime = 0;
 
             long now = System.currentTimeMillis();
-            
+
             // Update stored data
             synchronized (PREFS_FILE) {
                 SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, 0);
@@ -243,14 +258,14 @@ public class LastFM {
 
                 Log.d("TeaCup", "from prefs " + curArtist + ", " + curTitle + ", " + curTrackLen);
 
-                if (!curArtist.equals(artist) || 
-                	 !curTitle.equals(title) ||
-                	 !playing) {
+                if (!curArtist.equals(artist) ||
+                     !curTitle.equals(title) ||
+                     !playing) {
                     Log.d("TeaCup", "passed");
                     Log.d("TeaCup", "played for " + (now - timeBegan) + " from " + timeBegan + " vs " + (curTrackLen / 2));
                     long playedFor = now - timeBegan;
-                    if (trackLen >= THIRTY_SECONDS && 
-                        (playedFor >= FOUR_MINUTES || 
+                    if (trackLen >= THIRTY_SECONDS &&
+                        (playedFor >= FOUR_MINUTES ||
                          playedFor >= (curTrackLen / 2))) {
 
                         Log.d("TeaCup", "played for " + playedFor);
@@ -262,7 +277,7 @@ public class LastFM {
                         scrobbleTime = timeBegan;
                     }
 
-                    SharedPreferences.Editor edit = prefs.edit(); 
+                    SharedPreferences.Editor edit = prefs.edit();
                     if (playing) {
                         Log.d("TeaCup", "putting args");
                         edit.putString(CUR_TRACK_ARTIST, artist);
@@ -277,42 +292,42 @@ public class LastFM {
                         edit.putLong(CUR_TRACK_LEN, 0);
                     }
                     edit.commit();
-                } 			
+                }
             }
 
             switch (getScrobbleType(context, config)) {
-                case NOSCROBBLE: 
+                case NOSCROBBLE:
                     break;
                 case SCROBBLE:
                     if (scrobble)
                         scrobbleTrack(context,
                                       config,
-                                      scrobbleArtist, 
-                                      scrobbleTitle, 
+                                      scrobbleArtist,
+                                      scrobbleTitle,
                                       scrobbleTime);
                     if (playing)
-                    	sendNowPlaying(context, config, artist, title, trackLen);
+                        sendNowPlaying(context, config, artist, title, trackLen);
                     break;
                 case CACHE:
                     if (scrobble)
                         cacheScrobble(context,
-                                      scrobbleArtist, 
-                                      scrobbleTitle, 
+                                      scrobbleArtist,
+                                      scrobbleTitle,
                                       scrobbleTime);
                     break;
             }
-	    } catch (InterruptedException e) {
+        } catch (InterruptedException e) {
             Log.w("TeaCup", "updateScrobble interrupted", e);
         }
-	}
-	
-	public static void scrobbleCache(Config config, Context context) {
-    	if(getScrobbleType(context, config) != ScrobbleType.SCROBBLE)
-    		return;
-		
-    	synchronized (SCROBBLE_CACHE_FILENAME) {
+    }
+
+    public static void scrobbleCache(Config config, Context context) {
+        if(getScrobbleType(context, config) != ScrobbleType.SCROBBLE)
+            return;
+
+        synchronized (SCROBBLE_CACHE_FILENAME) {
             FileInputStream fis = null;
-    		try {
+            try {
                 fis = context.openFileInput(SCROBBLE_CACHE_FILENAME);
             } catch (FileNotFoundException e) {
                 fis = null;
@@ -326,9 +341,9 @@ public class LastFM {
                     BufferedReader buf = new BufferedReader(ir);
                     String artist = buf.readLine();
                     while (artist != null) {
-                        artist = scrobbleCacheChunk(config, 
+                        artist = scrobbleCacheChunk(config,
                                                     context,
-                                                    artist, 
+                                                    artist,
                                                     buf);
                         ++numBatches;
                     }
@@ -337,7 +352,7 @@ public class LastFM {
                 } catch (IOException e) {
                     Log.w("TeaCup", "cacheScrobble ioexception", e);
                 } catch (InterruptedException e) {
-                	Log.w("TeaCup", "cacheScrobble interruptedexception", e);
+                    Log.w("TeaCup", "cacheScrobble interruptedexception", e);
                 }
             }
 
@@ -349,7 +364,7 @@ public class LastFM {
                         // we did MAX_SCROBBLE_SIZE * numBatches of the cache
                         // contents, but not the rest.  Need to update the
                         // cache file to reflect that
-                        cutDownCacheFile(context, 
+                        cutDownCacheFile(context,
                                          numBatches * MAX_SCROBBLE_SIZE);
 
                     } else {
@@ -359,23 +374,23 @@ public class LastFM {
             } catch (IOException e) {
                 Log.w("TeaCup", "scrobbleCache ioexception", e);
             }
-    	}
-	}
-	
-	public static long getScrobbleCacheSize(Context context) {
-		long length = 0;
-		synchronized (SCROBBLE_CACHE_FILENAME) {
-			File cache = context.getFileStreamPath(SCROBBLE_CACHE_FILENAME);
-			length = cache.length();
-		}
-		return length;
-	}
-	
-	public static void clearScrobbleCache(Context context) {
-		synchronized (SCROBBLE_CACHE_FILENAME) {
-			context.deleteFile(SCROBBLE_CACHE_FILENAME);
-		}
-	}
+        }
+    }
+
+    public static long getScrobbleCacheSize(Context context) {
+        long length = 0;
+        synchronized (SCROBBLE_CACHE_FILENAME) {
+            File cache = context.getFileStreamPath(SCROBBLE_CACHE_FILENAME);
+            length = cache.length();
+        }
+        return length;
+    }
+
+    public static void clearScrobbleCache(Context context) {
+        synchronized (SCROBBLE_CACHE_FILENAME) {
+            context.deleteFile(SCROBBLE_CACHE_FILENAME);
+        }
+    }
 
     private static void cutDownCacheFile(Context context, int num) {
         FileInputStream fis = null;
@@ -405,11 +420,11 @@ public class LastFM {
             bufOut.flush();
 
             copied = true;
-        } catch (FileNotFoundException e) { 
-        	Log.w("TeaCup", "cutDownCacheFile filenotfoundexception", e);
-    	} catch (IOException e) {
-    		Log.w("TeaCup", "cutDownCacheFile ioexception", e);
-    	} finally {
+        } catch (FileNotFoundException e) {
+            Log.w("TeaCup", "cutDownCacheFile filenotfoundexception", e);
+        } catch (IOException e) {
+            Log.w("TeaCup", "cutDownCacheFile ioexception", e);
+        } finally {
             try {
                 if (fis != null)
                     fis.close();
@@ -437,31 +452,31 @@ public class LastFM {
     private static String scrobbleCacheChunk(Config config,
                                              Context context,
                                              String artist,
-                                             BufferedReader buf) 
-                throws IOException, InterruptedException {    	
+                                             BufferedReader buf)
+                throws IOException, InterruptedException {
         String sessionKey = getSessionKey(context,  config,  true);
-        
+
         ArrayList<NameValuePair> vals = new ArrayList<NameValuePair>(4);
         vals.add(new BasicNameValuePair(SESSION_KEY_ARG, sessionKey));
         vals.add(new BasicNameValuePair(API_KEY_ARG, API_KEY));
         vals.add(new BasicNameValuePair(METHOD_ARG, SCROBBLE));
-        
+
         int i = 0;
         while (artist != null && i < MAX_SCROBBLE_SIZE) {
             String title = buf.readLine();
             String timestamp = buf.readLine();
 
             Log.d("TeaCup", "cache adding " + artist + ", " + title + ", " + timestamp);
-            
+
             String artist_arg = String.format(Locale.ENGLISH, ITH_ARTIST, i);
             String title_arg = String.format(Locale.ENGLISH, ITH_TITLE, i);
             String timestamp_arg = String.format(Locale.ENGLISH, ITH_TIMESTAMP, i);
-            
+
             vals.add(new BasicNameValuePair(artist_arg, artist));
             vals.add(new BasicNameValuePair(title_arg, title));
             vals.add(new BasicNameValuePair(timestamp_arg, timestamp));
-    
-            ++i;	
+
+            ++i;
             artist = buf.readLine();
         }
 
@@ -505,14 +520,14 @@ public class LastFM {
 
 
     private static void scrobbleTrack(Context context,
-    		                          Config config,
-    		                          String artist,
+                                      Config config,
+                                      String artist,
                                       String title,
-                                      long time) 
-    		throws InterruptedException {
-		Log.d("TeaCup", "scrobble " + artist + ", " + title + ".");
-    	try {
-    		String sessionKey = getSessionKey(context, config, true);
+                                      long time)
+            throws InterruptedException {
+        Log.d("TeaCup", "scrobble " + artist + ", " + title + ".");
+        try {
+            String sessionKey = getSessionKey(context, config, true);
             String timestamp = Long.toString(time / 1000);
 
             ArrayList<NameValuePair> vals = new ArrayList<NameValuePair>(4);
@@ -537,59 +552,59 @@ public class LastFM {
                 vals.add(new BasicNameValuePair(API_SIG_ARG, apiSig));
                 ok = lfmIsOK(postRequest(SECURE_API_ROOT, vals));
                 if (!ok && config.getLastFMScrobbleCache()) {
-                	cacheScrobble(context, artist, title, time);
+                    cacheScrobble(context, artist, title, time);
                 }
             }
 
-    		Log.d("TeaCup", "done scrobble " + artist + ", " + title + ".");
-    	} catch (IOException e) {
-    		Log.w("TeaCup", "scrobble ioexception", e);
-    	}
+            Log.d("TeaCup", "done scrobble " + artist + ", " + title + ".");
+        } catch (IOException e) {
+            Log.w("TeaCup", "scrobble ioexception", e);
+        }
     }
 
     private static void cacheScrobble(Context context,
                                       String artist,
                                       String title,
                                       long time) {
-    	synchronized (SCROBBLE_CACHE_FILENAME) {
-    		try {
-    			FileOutputStream fos;
-    			try {
-    				fos = context.openFileOutput(SCROBBLE_CACHE_FILENAME, 
-    						                     Context.MODE_APPEND);
-    			} catch (FileNotFoundException e) {
-    				fos = context.openFileOutput(SCROBBLE_CACHE_FILENAME, 
-        				                         Context.MODE_PRIVATE);
-    			}
+        synchronized (SCROBBLE_CACHE_FILENAME) {
+            try {
+                FileOutputStream fos;
+                try {
+                    fos = context.openFileOutput(SCROBBLE_CACHE_FILENAME,
+                                                 Context.MODE_APPEND);
+                } catch (FileNotFoundException e) {
+                    fos = context.openFileOutput(SCROBBLE_CACHE_FILENAME,
+                                                 Context.MODE_PRIVATE);
+                }
                 BufferedOutputStream buf = new BufferedOutputStream(fos);
-    			buf.write(artist.getBytes());
-    			buf.write("\n".getBytes());
-    			buf.write(title.getBytes());
-    			buf.write("\n".getBytes());
-    			buf.write(Long.toString(time / 1000).getBytes());
-    			buf.write("\n".getBytes());
+                buf.write(artist.getBytes());
+                buf.write("\n".getBytes());
+                buf.write(title.getBytes());
+                buf.write("\n".getBytes());
+                buf.write(Long.toString(time / 1000).getBytes());
+                buf.write("\n".getBytes());
                 buf.flush();
-    			fos.close();
-    		} catch (FileNotFoundException e) {
-    			Log.e("TeaCup", "cacheScrobble filenotfoundexception", e);
-    		} catch (IOException e) {
-    			Log.e("TeaCup", "cacheScrobble ioexception", e);
-    		}
-    		Log.d("TeaCup", "cache " + artist + ", " + title + ", " + time);
-    	}
+                fos.close();
+            } catch (FileNotFoundException e) {
+                Log.e("TeaCup", "cacheScrobble filenotfoundexception", e);
+            } catch (IOException e) {
+                Log.e("TeaCup", "cacheScrobble ioexception", e);
+            }
+            Log.d("TeaCup", "cache " + artist + ", " + title + ", " + time);
+        }
     }
 
-    private static void sendNowPlaying(Context context, 
-    		                           Config config,
-    		                           String artist, 
-    		                           String title,
-    		                           long length) 
-    		throws InterruptedException {
-		Log.d("TeaCup", "now playing " + artist + ", " + title + ".");
-    	try {
-    		String sessionKey = getSessionKey(context, config, true);
-    		String strLength = Long.toString(length / 1000);
-    		
+    private static void sendNowPlaying(Context context,
+                                       Config config,
+                                       String artist,
+                                       String title,
+                                       long length)
+            throws InterruptedException {
+        Log.d("TeaCup", "now playing " + artist + ", " + title + ".");
+        try {
+            String sessionKey = getSessionKey(context, config, true);
+            String strLength = Long.toString(length / 1000);
+
             ArrayList<NameValuePair> vals = new ArrayList<NameValuePair>(6);
             vals.add(new BasicNameValuePair(SESSION_KEY_ARG, sessionKey));
             vals.add(new BasicNameValuePair(API_KEY_ARG, API_KEY));
@@ -616,34 +631,34 @@ public class LastFM {
                 }
             }
 
-    		Log.d("TeaCup", "done now playing " + artist + ", " + title + ".");
-    	} catch (IOException e) {
-    		Log.e("TeaCup", "now playing ioexception", e);
-    	}
+            Log.d("TeaCup", "done now playing " + artist + ", " + title + ".");
+        } catch (IOException e) {
+            Log.e("TeaCup", "now playing ioexception", e);
+        }
     }
 
 
-    private static String getSessionKey(Context context, 
-    		                            Config config,
-    		                            boolean tryStoredKey) 
+    private static String getSessionKey(Context context,
+                                        Config config,
+                                        boolean tryStoredKey)
                 throws IOException, InterruptedException {
         String key = "";
-    	
+
         synchronized (PREFS_FILE) {
             String username = config.getLastFMUserName();
             String password = config.getLastFMPassword();
-            
+
             SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, 0);
-           
+
             if (tryStoredKey) {
                 String sessionUsername = prefs.getString(SESSION_KEY_USERNAME, "");
                 String sessionPassword = prefs.getString(SESSION_KEY_PASSWORD, "");
-                if (username.equals(sessionUsername) && 
+                if (username.equals(sessionUsername) &&
                     password.equals(sessionPassword))
                     key = prefs.getString(SESSION_KEY, "");
             }
-        
-            // request key 
+
+            // request key
             if ("".equals(key)) {
                 ArrayList<NameValuePair> vals = new ArrayList<NameValuePair>(5);
                 vals.add(new BasicNameValuePair(API_KEY_ARG, API_KEY));
@@ -659,7 +674,7 @@ public class LastFM {
                 if (entity != null) {
                     key = grabXmlTag(entity.getContent(), KEY_TAG);
                     if (key != null) {
-                        SharedPreferences.Editor edit = prefs.edit(); 
+                        SharedPreferences.Editor edit = prefs.edit();
                         edit.putString(SESSION_KEY_USERNAME, username);
                         edit.putString(SESSION_KEY_PASSWORD, password);
                         edit.putString(SESSION_KEY, key);
@@ -669,274 +684,327 @@ public class LastFM {
                     }
                 }
             }
-            
+
             Log.d("TeaCup", "gotsessionkey: " + key);
         }
 
         return key;
     }
 
-	
-	private static Bitmap getArtUnprotected(Context context,
-                                            Config config, 
-                                            String artist, 
+
+    private static Bitmap getArtUnprotected(Context context,
+                                            Config config,
+                                            String artist,
                                             String album,
                                             String filename) throws InterruptedException {
-		Bitmap artBmp = null;
+        Bitmap artBmp = null;
 
-		if (config.getLastFMCacheStyle() != Config.LASTFM_NO_CACHE)
-			artBmp = getCachedArt(config, artist, album, filename);
+        if (config.getLastFMCacheStyle() != Config.LASTFM_NO_CACHE)
+            artBmp = getCachedArt(config, artist, album, filename);
 
-		if (artBmp == null) {
-			artBmp = getWebArt(context, config, artist, album, filename);
-			if (artBmp != null)
-				cacheBitmap(config, artist, album, filename, artBmp);
-		}
-		
-		return artBmp;
-	}
-		
-	private synchronized static void cacheBitmap(Config config,
-			                                     String artist,
-			                                     String album,
-			                                     String filename,
-			                                     Bitmap artBmp) {
-		try {
-			String directory = getCacheDir(config, filename);
-			File dir = new File(directory);
-			if (!dir.exists())
-				dir.mkdirs();
-			String imageName = directory +
-					           File.separator +
-				               getCacheFileName(artist, album);
-			File image = new File(imageName);
-			if (!image.exists()) {
-				FileOutputStream os = new FileOutputStream(image);
+        if (artBmp == null) {
+            artBmp = getWebArt(context, config, artist, album);
+            if (artBmp != null)
+                cacheBitmap(config, artist, album, filename, artBmp);
+        }
 
-				artBmp.compress(CACHE_TYPE, 85, os);
-				os.flush();
-				os.close();
-			}
-		} catch (FileNotFoundException e) {
-			Log.e("TeaCup", "filenotfoundexception: " + e.toString());
-		} catch (IOException e) {
-			Log.e("TeaCup", "ioexception: " + e.toString());
-		}
-	}
-	
-	private synchronized static Bitmap getCachedArt(Config config, 
-			                                        String artist, 
-			                                        String album,
-			                                        String filename) {
-		String imageName = getCacheDir(config,  filename) +
-				           File.separator +
-				           getCacheFileName(artist, album);
-		File image = new File(imageName);
-		if (image.exists())
-			return AlbumArtFactory.readFile(image);
-		else
-			return null;
-	}
-	
-	private static String getCacheDir(Config config, String filename) {
-		switch (config.getLastFMCacheStyle()) {
-		case Config.LASTFM_CACHE_INDIR: return config.getLastFMDirectory();
-		case Config.LASTFM_CACHE_WITHMUSIC: return new File(filename).getParent();
-		default: return null;
-		}
-	}
-	
-	private static String getCacheFileName(String artist, String album) {
-		String cleanArtist = artist.replaceAll("\\W+", "");
-		String cleanAlbum = album.replaceAll("\\W+", "");
-		
-		return cleanArtist + cleanAlbum + CACHE_EXT;
-	}
-	
-	private static Bitmap getWebArt(Context context,
-			                        Config config,
-			                        String artist, 
-			                        String album,
-			                        String filename) throws InterruptedException {
-		Bitmap artBmp = null;
-		
-		if (shouldConnectArt(config, context)) {
-			String artUrl = getArtUrl(artist, album);
-			if (artUrl != null) {
-				try {
-					URLConnection url = makeRequest(new URL(artUrl));
-					InputStream is = url.getInputStream();
-					artBmp = AlbumArtFactory.readStream(is);
-				} catch (MalformedURLException e) {
-					Log.w("TeaCup", "LastFM produced a malformed url!" + artUrl);
-				} catch (IOException e) {
-					Log.d("TeaCup", "ioexception:", e);
-				}
-			}
-		}
-		
-		return artBmp;
-	}
+        return artBmp;
+    }
+
+    private synchronized static void cacheBitmap(Config config,
+                                                 String artist,
+                                                 String album,
+                                                 String filename,
+                                                 Bitmap artBmp) {
+        try {
+            String directory = getCacheDir(config, filename);
+            File dir = new File(directory);
+            if (!dir.exists())
+                dir.mkdirs();
+            String imageName = directory +
+                               File.separator +
+                               getCacheFileName(artist, album);
+            File image = new File(imageName);
+            if (!image.exists()) {
+                FileOutputStream os = new FileOutputStream(image);
+
+                artBmp.compress(CACHE_TYPE, 85, os);
+                os.flush();
+                os.close();
+            }
+        } catch (FileNotFoundException e) {
+            Log.e("TeaCup", "filenotfoundexception: " + e.toString());
+        } catch (IOException e) {
+            Log.e("TeaCup", "ioexception: " + e.toString());
+        }
+    }
+
+    private synchronized static Bitmap getCachedArt(Config config,
+                                                    String artist,
+                                                    String album,
+                                                    String filename) {
+        String imageName = getCacheDir(config,  filename) +
+                           File.separator +
+                           getCacheFileName(artist, album);
+        File image = new File(imageName);
+        if (image.exists())
+            return AlbumArtFactory.readFile(image);
+        else
+            return null;
+    }
+
+    private static String getCacheDir(Config config, String filename) {
+        switch (config.getLastFMCacheStyle()) {
+        case Config.LASTFM_CACHE_INDIR: return config.getLastFMDirectory();
+        case Config.LASTFM_CACHE_WITHMUSIC: return new File(filename).getParent();
+        default: return null;
+        }
+    }
+
+    private static String getCacheFileName(String artist, String album) {
+        String cleanArtist = artist.replaceAll("\\W+", "");
+        String cleanAlbum = album.replaceAll("\\W+", "");
+
+        return cleanArtist + cleanAlbum + CACHE_EXT;
+    }
+
+    private static Bitmap getWebArt(Context context,
+                                    Config config,
+                                    String artist,
+                                    String album)
+                throws InterruptedException {
+        Bitmap artBmp = null;
+
+        if (shouldConnectArt(config, context)) {
+            String artUrl = getAlbumArtUrl(artist, album);
+            if (artUrl == null)
+                artUrl = getArtistArtUrl(artist);
+            if (artUrl != null) {
+                try {
+                    URLConnection url = makeRequest(new URL(artUrl));
+                    InputStream is = url.getInputStream();
+                    artBmp = AlbumArtFactory.readStream(is);
+                } catch (MalformedURLException e) {
+                    Log.w("TeaCup", "LastFM produced a malformed url!" + artUrl);
+                } catch (IOException e) {
+                    Log.d("TeaCup", "ioexception:", e);
+                }
+            }
+        }
+
+        return artBmp;
+    }
 
     private static boolean shouldConnectArt(Config config, Context context) {
-		boolean getLastFMArtWifi = config.getLastFMArtWifi();
+        boolean getLastFMArtWifi = config.getLastFMArtWifi();
         boolean getLastFMArtNetwork = config.getLastFMArtNetwork();
-        
-        return shouldConnect(context, 
-                             getLastFMArtWifi, 
+
+        return shouldConnect(context,
+                             getLastFMArtWifi,
                              getLastFMArtNetwork);
     }
-	
-	private static boolean shouldConnect(Context context,
+
+    private static boolean shouldConnect(Context context,
                                          boolean wifiOk,
                                          boolean networkOK) {
         ConnectivityManager cm = (ConnectivityManager)
         context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
-    	NetworkInfo wifiNetwork 
-			= cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+        NetworkInfo wifiNetwork
+            = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
 
-    	if (wifiOk &&
-    		wifiNetwork != null &&  
-        	wifiNetwork.isConnectedOrConnecting())
-    		return true;
+        if (wifiOk &&
+            wifiNetwork != null &&
+            wifiNetwork.isConnectedOrConnecting())
+            return true;
 
-    	NetworkInfo mobileNetwork 
-			= cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
-    	
-    	if (networkOK &&
-    	    mobileNetwork != null && 
-    	    mobileNetwork.isConnectedOrConnecting())
-    		return true;
-    	
+        NetworkInfo mobileNetwork
+            = cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
 
-    	NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-    	
-    	if (networkOK &&
-		    activeNetwork != null && 
-		    activeNetwork.isConnectedOrConnecting())
-    		return true;
-    	
-    	return false;
-	}
-	
-	private static String getArtUrl(String artist, String album) 
+        if (networkOK &&
+            mobileNetwork != null &&
+            mobileNetwork.isConnectedOrConnecting())
+            return true;
+
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+
+        if (networkOK &&
+            activeNetwork != null &&
+            activeNetwork.isConnectedOrConnecting())
+            return true;
+
+        return false;
+    }
+
+    private static String getAlbumArtUrl(String artist, String album)
                 throws InterruptedException {
-		try {
-			String webArtist = URLEncoder.encode(artist, "UTF-8");
-			String webAlbum = URLEncoder.encode(album, "UTF-8");			
-			
-			URL url = new URL(String.format(ART_TEMPLATE, webArtist, webAlbum));
-			URLConnection ucon = makeRequest(url);
-			InputStream is = ucon.getInputStream();
+        try {
+            String webArtist = URLEncoder.encode(artist, "UTF-8");
+            String webAlbum = URLEncoder.encode(album, "UTF-8");
 
-            return grabXmlTag(is, IMAGE_TAG, SIZE_ATTR, IMAGE_SIZE);
-			
-		} catch (IOException e) {
-			// do nothing
-			Log.d("TeaCup", "ioexception: " + e);
-		}
-        
+            URL url = new URL(String.format(ALBUM_ART_TEMPLATE,
+                                            webArtist,
+                                            webAlbum));
+            URLConnection ucon = makeRequest(url);
+            InputStream is = ucon.getInputStream();
+
+            return grabXmlTag(is,
+                              IMAGE_TAG,
+                              SIZE_ATTR,
+                              IMAGE_SIZE);
+
+        } catch (IOException e) {
+            // do nothing
+            Log.d("TeaCup", "ioexception: " + e);
+        }
+
         return null;
-	}
+    }
 
-    private static String grabXmlTag(InputStream is, 
+    private static String getArtistArtUrl(String artist)
+                throws InterruptedException {
+        try {
+            String webArtist = URLEncoder.encode(artist, "UTF-8");
+
+            URL url = new URL(String.format(ARTIST_ART_TEMPLATE,
+                                            webArtist));
+            URLConnection ucon = makeRequest(url);
+            InputStream is = ucon.getInputStream();
+
+            return grabXmlTag(is,
+                              IMAGE_TAG,
+                              SIZE_ATTR,
+                              IMAGE_SIZE,
+                              SIMILAR_TAG_SET);
+
+        } catch (IOException e) {
+            // do nothing
+            Log.d("TeaCup", "ioexception: " + e);
+        }
+
+        return null;
+    }
+
+
+
+    private static String grabXmlTag(InputStream is,
                                      String tagName) {
-        return grabXmlTag(is, tagName,  null, null);
+        return grabXmlTag(is, tagName,  null, null, null);
     }
 
     private static String grabXmlTag(InputStream is,
                                      String tagName,
                                      String attrName,
                                      String attrVal) {
-		try {
-			XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
-			factory.setNamespaceAware(false);
-			XmlPullParser xpp = factory.newPullParser();
-			
-			xpp.setInput(is, null);
-        
-			int eventType = xpp.getEventType();
-        
-			while (eventType != XmlPullParser.END_DOCUMENT) {
-				
-				if (eventType == XmlPullParser.START_TAG &&
-						tagName.equals(xpp.getName())) {
-                    if (attrName != null) {
-                        String val = xpp.getAttributeValue(LFM_NAMESPACE, attrName);
-                        if (attrVal.equals(val)) {
+        return grabXmlTag(is, tagName, attrName, attrVal, null);
+    }
+
+    private static String grabXmlTag(InputStream is,
+                                     String tagName,
+                                     String attrName,
+                                     String attrVal,
+                                     Set<String> ignoreTags) {
+        try {
+            XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+            factory.setNamespaceAware(false);
+            XmlPullParser xpp = factory.newPullParser();
+
+            xpp.setInput(is, null);
+
+            int eventType = xpp.getEventType();
+
+            int ignoreDepth = 0;
+
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+
+                if (ignoreDepth > 0 && ignoreTags != null) {
+                    if (eventType == XmlPullParser.START_TAG &&
+                        ignoreTags.contains(xpp.getName())) {
+                        ++ignoreDepth;
+                    } else if (eventType == XmlPullParser.END_TAG &&
+                               ignoreTags.contains(xpp.getName())) {
+                        --ignoreDepth;
+                    }
+                } else {
+                    if (eventType == XmlPullParser.START_TAG &&
+                            tagName.equals(xpp.getName())) {
+                        if (attrName != null) {
+                            String val = xpp.getAttributeValue(LFM_NAMESPACE, attrName);
+                            if (attrVal.equals(val)) {
+                                xpp.next();
+                                return xpp.getText();
+                            }
+                        } else {
                             xpp.next();
                             return xpp.getText();
                         }
-                    } else {
-                    	xpp.next();
-                        return xpp.getText();
                     }
-				}
-				xpp.next();
-				eventType = xpp.getEventType();
-			}
-		} catch (XmlPullParserException e) {
-			// do nothing
-			Log.d("TeaCup", "grabXmlTag xmlpullparserexception", e);
-		} catch (IOException e) {
-			// do nothing
-			Log.d("TeaCup", "grabXmlTag ioexception", e);
-		}
+                }
+                xpp.next();
+                eventType = xpp.getEventType();
+            }
+        } catch (XmlPullParserException e) {
+            // do nothing
+            Log.d("TeaCup", "grabXmlTag xmlpullparserexception", e);
+        } catch (IOException e) {
+            // do nothing
+            Log.d("TeaCup", "grabXmlTag ioexception", e);
+        }
 
         return null;
     }
 
     private static boolean lfmIsOK(HttpResponse response) {
-		try {
+        try {
             HttpEntity entity = response.getEntity();
-            if (entity == null) 
+            if (entity == null)
                 return false;
 
-			XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
-			factory.setNamespaceAware(false);
-			XmlPullParser xpp = factory.newPullParser();
-			
-			xpp.setInput(entity.getContent(), null);
-        
-			int eventType = xpp.getEventType();
-        
-			while (eventType != XmlPullParser.END_DOCUMENT) {
-				
-				if (eventType == XmlPullParser.START_TAG &&
-						LFM_TAG.equals(xpp.getName())) {
+            XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+            factory.setNamespaceAware(false);
+            XmlPullParser xpp = factory.newPullParser();
+
+            xpp.setInput(entity.getContent(), null);
+
+            int eventType = xpp.getEventType();
+
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+
+                if (eventType == XmlPullParser.START_TAG &&
+                        LFM_TAG.equals(xpp.getName())) {
                     String val = xpp.getAttributeValue(LFM_NAMESPACE, LFM_STATUS_ATTR);
                     Log.d("TeaCup", "status: " + val);
                     return LFM_STATUS_OK.equals(val);
-				}
-				xpp.next();
-				eventType = xpp.getEventType();
-			}
-		} catch (XmlPullParserException e) {
-			// do nothing
-			Log.d("TeaCup", "grabXmlTag xmlpullparserexception", e);
-		} catch (IOException e) {
-			// do nothing
-			Log.d("TeaCup", "grabXmlTag ioexception", e);
-		}
-        
+                }
+                xpp.next();
+                eventType = xpp.getEventType();
+            }
+        } catch (XmlPullParserException e) {
+            // do nothing
+            Log.d("TeaCup", "grabXmlTag xmlpullparserexception", e);
+        } catch (IOException e) {
+            // do nothing
+            Log.d("TeaCup", "grabXmlTag ioexception", e);
+        }
+
         Log.d("TeaCup", "status: bad");
 
         return false;
     }
 
-	
-	private static URLConnection makeRequest(URL url) 
-				throws IOException, InterruptedException {
-        waitForRequestPermission();	
-    
-		URLConnection ucon = url.openConnection();
-		ucon.setConnectTimeout(URL_TIMEOUT);
-		ucon.setReadTimeout(URL_TIMEOUT);
-		return ucon;
-	}
 
-    private static HttpResponse postRequest(String url, 
+    private static URLConnection makeRequest(URL url)
+                throws IOException, InterruptedException {
+        waitForRequestPermission();
+
+        URLConnection ucon = url.openConnection();
+        ucon.setConnectTimeout(URL_TIMEOUT);
+        ucon.setReadTimeout(URL_TIMEOUT);
+        return ucon;
+    }
+
+    private static HttpResponse postRequest(String url,
                                             List<NameValuePair> vals)
                 throws IOException, InterruptedException {
         waitForRequestPermission();
@@ -952,30 +1020,30 @@ public class LastFM {
         }
     }
 
-    private synchronized static void waitForRequestPermission() 
+    private synchronized static void waitForRequestPermission()
                 throws InterruptedException {
 
-    	if (timeSliceBegin < 0)
-			timeSliceBegin = System.currentTimeMillis();
-		
-		long time = System.currentTimeMillis();
-		long sliceEnd = timeSliceBegin + TIME_SLICE_LEN;
-				
-		if (++numRequests > MAX_REQUESTS && time < sliceEnd) {
-			Log.d("TeaCup", "sleep!");
-			Thread.sleep(sliceEnd - time + TIME_SAFETY_BUFFER);
-			numRequests = 1;
-			timeSliceBegin = System.currentTimeMillis();
-		} else if (time > sliceEnd) {
-			numRequests = 0;
-			timeSliceBegin = System.currentTimeMillis();
-		}
+        if (timeSliceBegin < 0)
+            timeSliceBegin = System.currentTimeMillis();
+
+        long time = System.currentTimeMillis();
+        long sliceEnd = timeSliceBegin + TIME_SLICE_LEN;
+
+        if (++numRequests > MAX_REQUESTS && time < sliceEnd) {
+            Log.d("TeaCup", "sleep!");
+            Thread.sleep(sliceEnd - time + TIME_SAFETY_BUFFER);
+            numRequests = 1;
+            timeSliceBegin = System.currentTimeMillis();
+        } else if (time > sliceEnd) {
+            numRequests = 0;
+            timeSliceBegin = System.currentTimeMillis();
+        }
     }
 
     // Following method stolen from lastfm-java: https://code.google.com/p/lastfm-java/
     // Which is something i wish i'd found before starting this class file :)
     private static String md5Hash(String s) {
-    	String hash = "";
+        String hash = "";
         try {
             MessageDigest md5 = MessageDigest.getInstance("MD5");
             byte[] bytes = md5.digest(s.getBytes("UTF-8"));
@@ -988,56 +1056,56 @@ public class LastFM {
             }
             return b.toString();
         } catch (NoSuchAlgorithmException e) {
-        	Log.e("TeaCup", "md5Hash nosuchalgorithmexception", e);
+            Log.e("TeaCup", "md5Hash nosuchalgorithmexception", e);
         } catch (UnsupportedEncodingException e) {
-        	Log.e("TeaCup", "md5Hash unsupportedencodingexception", e);
+            Log.e("TeaCup", "md5Hash unsupportedencodingexception", e);
         }
         return hash;
     }
-    
+
     private static void logIS(InputStream is) {
-    	try {
-    		InputStreamReader ir = new InputStreamReader(is);
-    		BufferedReader br = new BufferedReader(ir);
-    		String read = br.readLine();
-    		while (read != null) {
-    			Log.d("TeaCup", read);
-    			read = br.readLine();
-    		}
-    	} catch (IOException e) {
-    		Log.d("TeaCup", "error logging input stream", e);
-    	}
+        try {
+            InputStreamReader ir = new InputStreamReader(is);
+            BufferedReader br = new BufferedReader(ir);
+            String read = br.readLine();
+            while (read != null) {
+                Log.d("TeaCup", read);
+                read = br.readLine();
+            }
+        } catch (IOException e) {
+            Log.d("TeaCup", "error logging input stream", e);
+        }
     }
 
 
-    private static final Comparator<NameValuePair> comparator 
-    	= new Comparator<NameValuePair>() {
-        	public int compare(NameValuePair p1, NameValuePair p2) {
-        		return p1.getName().compareTo(p2.getName());
-        	}
-    	};
+    private static final Comparator<NameValuePair> comparator
+        = new Comparator<NameValuePair>() {
+            public int compare(NameValuePair p1, NameValuePair p2) {
+                return p1.getName().compareTo(p2.getName());
+            }
+        };
 
     private static String makeApiSig(ArrayList<NameValuePair> vals) {
         Collections.sort(vals, comparator);
         StringBuilder sb = new StringBuilder();
         for (NameValuePair p : vals) {
-        	sb.append(p.getName());
-        	sb.append(p.getValue());
+            sb.append(p.getName());
+            sb.append(p.getValue());
         }
         sb.append(API_SECRET);
         Log.d("TeaCup", "apisig: " + sb.toString());
         return md5Hash(sb.toString());
     }
-    
+
     private static void resetNameValue(String name,
-    		                           String value,
-    		                           ArrayList<NameValuePair> vals) {
-    	for (int i = 0; i < vals.size(); ++i) {
-    		if (vals.get(i).getName().equals(name)) {
-    			vals.set(i, new BasicNameValuePair(name, value));
-    			return;
-    		}
-    	}
+                                       String value,
+                                       ArrayList<NameValuePair> vals) {
+        for (int i = 0; i < vals.size(); ++i) {
+            if (vals.get(i).getName().equals(name)) {
+                vals.set(i, new BasicNameValuePair(name, value));
+                return;
+            }
+        }
     }
 
 }

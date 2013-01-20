@@ -26,8 +26,8 @@ public class Config {
     public static final int LASTFM_NO_CACHE = 0;
     public static final int LASTFM_CACHE_INDIR = 1;
     public static final int LASTFM_CACHE_WITHMUSIC = 2;
-    
-	
+
+
     private static final String CUSTOM_PLAYER_NAME = "Custom Player";
     private static final String ANDROID_PLAYER_NAME = "Android Player";
 
@@ -60,15 +60,15 @@ public class Config {
 
     private static int CUSTOM_PLAYER_ID = -1;
     private static int DEFAULT_PLAYER_ID = 0;
-    
+
     private static final boolean DEFAULT_GET_EMBEDDED_ART = true;
     private static final boolean DEFAULT_GET_DIRECTORY_ART = true;
     private static final boolean DEFAULT_GET_LASTFM_ART_WIFI = false;
     private static final boolean DEFAULT_GET_LASTFM_ART_NETWORK = false;
     private static final int DEFAULT_LASTFM_CACHE_STYLE = LASTFM_CACHE_INDIR;
     private static final String DEFAULT_LASTFM_DIRECTORY = Environment.getExternalStorageDirectory().getPath() +
-    		                                               File.separator + 
-    		                                               ".teacup";
+                                                           File.separator +
+                                                           ".teacup";
     private static final boolean DEFAULT_LASTFM_SCROBBLE_WIFI = false;
     private static final boolean DEFAULT_LASTFM_SCROBBLE_NETWORK = false;
     private static final boolean DEFAULT_LASTFM_SCROBBLE_CACHE = false;
@@ -183,7 +183,7 @@ public class Config {
         lastFMUserName = prefs.getString(LASTFM_USERNAME, DEFAULT_LASTFM_USERNAME);
         lastFMPassword = prefs.getString(LASTFM_PASSWORD, DEFAULT_LASTFM_PASSWORD);
         selectedPlayerId = prefs.getInt(SELECTED_PLAYER_ID, DEFAULT_SELECTED_PLAYER_ID);
-        
+
         customPlayer
             = new PlayerConfig(CUSTOM_PLAYER_ID,
                                CUSTOM_PLAYER_NAME,
@@ -210,21 +210,21 @@ public class Config {
     public boolean getDirectoryArt() {
         return getDirectoryArt;
     }
-    
+
     public boolean getLastFMArtWifi() {
-    	return getLastFMArtWifi;
+        return getLastFMArtWifi;
     }
-    
+
     public boolean getLastFMArtNetwork() {
-    	return getLastFMArtNetwork;
+        return getLastFMArtNetwork;
     }
-    
+
     public int getLastFMCacheStyle() {
-    	return lastFMCacheStyle;
+        return lastFMCacheStyle;
     }
-    
+
     public String getLastFMDirectory() {
-    	return lastFMDirectory;
+        return lastFMDirectory;
     }
 
     public PlayerConfig getPlayer() {
@@ -345,27 +345,27 @@ public class Config {
         int buttonId = group.getCheckedRadioButtonId();
         RadioButton button = (RadioButton) activity.findViewById(buttonId);
         String playerName = button.getText().toString();
-        
+
         if (playerName.equals(CUSTOM_PLAYER_NAME)) {
-        	return CUSTOM_PLAYER_ID;
+            return CUSTOM_PLAYER_ID;
         } else {
-        	for (int i = 0; i < defaultPlayers.size(); ++i) {
-        		if (defaultPlayers.valueAt(i).equals(playerName)) 
-        			return defaultPlayers.keyAt(i);
-        	}
-        	return DEFAULT_PLAYER_ID;
+            for (int i = 0; i < defaultPlayers.size(); ++i) {
+                if (defaultPlayers.valueAt(i).equals(playerName))
+                    return defaultPlayers.keyAt(i);
+            }
+            return DEFAULT_PLAYER_ID;
         }
     }
-    
+
     private int getCacheRadioGroupValue(Activity activity) {
-    	RadioGroup group = (RadioGroup) activity.findViewById(R.id.selectLastFMCacheRadioGroup);
-    	int buttonId = group.getCheckedRadioButtonId();
-    	switch (buttonId) {
-    	case R.id.lastFMCacheNone: return LASTFM_NO_CACHE;
-    	case R.id.lastFMCacheInDir: return LASTFM_CACHE_INDIR;
-    	case R.id.lastFMCacheWithMusic: return LASTFM_CACHE_WITHMUSIC;
-    	}
-    	return DEFAULT_LASTFM_CACHE_STYLE;
+        RadioGroup group = (RadioGroup) activity.findViewById(R.id.selectLastFMCacheRadioGroup);
+        int buttonId = group.getCheckedRadioButtonId();
+        switch (buttonId) {
+        case R.id.lastFMCacheNone: return LASTFM_NO_CACHE;
+        case R.id.lastFMCacheInDir: return LASTFM_CACHE_INDIR;
+        case R.id.lastFMCacheWithMusic: return LASTFM_CACHE_WITHMUSIC;
+        }
+        return DEFAULT_LASTFM_CACHE_STYLE;
     }
 
 
@@ -391,39 +391,39 @@ public class Config {
 
     private void setPlayerRadioGroupId(Activity activity,
                                        int valueId) {
-    	String playerName;
-    	if (valueId == CUSTOM_PLAYER_ID)
-    		playerName = CUSTOM_PLAYER_NAME;
-    	else
-    		playerName = defaultPlayers.get(valueId).getName();
-    	
-    	RadioGroup players = (RadioGroup) activity.findViewById(R.id.selectPlayerRadioGroup);
-    	
-    	int n = players.getChildCount();
-    	for (int i = 0; i < n; ++i) {
-    		RadioButton button = (RadioButton) players.getChildAt(i);
-    		if (button.getText().equals(playerName)) {
-    			button.setChecked(true);
-    			break;
-    		}
-    	}
+        String playerName;
+        if (valueId == CUSTOM_PLAYER_ID)
+            playerName = CUSTOM_PLAYER_NAME;
+        else
+            playerName = defaultPlayers.get(valueId).getName();
+
+        RadioGroup players = (RadioGroup) activity.findViewById(R.id.selectPlayerRadioGroup);
+
+        int n = players.getChildCount();
+        for (int i = 0; i < n; ++i) {
+            RadioButton button = (RadioButton) players.getChildAt(i);
+            if (button.getText().equals(playerName)) {
+                button.setChecked(true);
+                break;
+            }
+        }
     }
-    
+
     private void setCacheRadioGroupValue(Activity activity, int value) {
-    	int buttonId = 0;
-    	switch (value) {
-    	case LASTFM_NO_CACHE: 
-    		buttonId = R.id.lastFMCacheNone; 
-    	    break;
-    	case LASTFM_CACHE_INDIR: 
-    		buttonId = R.id.lastFMCacheInDir;
-    	    break;
-    	case LASTFM_CACHE_WITHMUSIC: 
-    		buttonId = R.id.lastFMCacheWithMusic;
-    	    break;
-    	}
-    	RadioButton button = (RadioButton) activity.findViewById(buttonId);
-    	button.setChecked(true);
+        int buttonId = 0;
+        switch (value) {
+        case LASTFM_NO_CACHE:
+            buttonId = R.id.lastFMCacheNone;
+            break;
+        case LASTFM_CACHE_INDIR:
+            buttonId = R.id.lastFMCacheInDir;
+            break;
+        case LASTFM_CACHE_WITHMUSIC:
+            buttonId = R.id.lastFMCacheWithMusic;
+            break;
+        }
+        RadioButton button = (RadioButton) activity.findViewById(buttonId);
+        button.setChecked(true);
     }
 
     private PlayerConfig getPlayer(int id) {

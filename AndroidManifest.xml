@@ -15,13 +15,13 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
-        
+
            <receiver android:name="TeaCup" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -33,9 +33,9 @@
             <meta-data android:name="android.appwidget.provider"
                        android:resource="@xml/teacup_info" />
         </receiver>
-        
+
         <activity android:name="TeaCupConfiguration"
-                  android:label="@string/app_name" 
+                  android:label="@string/app_name"
                   android:windowSoftInputMode="stateUnchanged">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -43,25 +43,25 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        
+
         <service android:name="TeaCupService"
                  android:exported="false">
             <intent-filter >
                 <action android:name="net.chilon.matt.teacupservice.TEACUP_SERVICE" />
             </intent-filter>
         </service>
-        
+
         <service android:name="TeaCupUpdater"
                  android:exported="false"/>
 
         <receiver android:name="ServiceStarter">
             <intent-filter >
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>    
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
         </receiver>
-        
+
     </application>
-    
+
 
 
 </manifest>

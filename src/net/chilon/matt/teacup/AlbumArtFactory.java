@@ -18,11 +18,11 @@ import android.util.Log;
 
 public class AlbumArtFactory {
 
-	private static final int URL_TIMEOUT = 3000;
-	
+    private static final int URL_TIMEOUT = 3000;
+
     private static final int ART_WIDTH = 120;
     private static final int ART_HEIGHT = 120;
-	
+
     // code below from android tutorial (more or less):
     // https://developer.android.com/training/displaying-bitmaps/load-bitmap.html
 
@@ -47,14 +47,14 @@ public class AlbumArtFactory {
         options.inPurgeable = true;
         return BitmapFactory.decodeByteArray(data, 0, data.length, options);
     }
-    
+
 
     public static Bitmap readStream(InputStream is) {
-    	// can't read a stream twice, so no downsizing.
-    	return BitmapFactory.decodeStream(is);
+        // can't read a stream twice, so no downsizing.
+        return BitmapFactory.decodeStream(is);
     }
-    
-    
+
+
 
     private static int calculateInSampleSize(BitmapFactory.Options options) {
         final int height = options.outHeight;

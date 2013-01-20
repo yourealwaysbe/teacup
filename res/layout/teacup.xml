@@ -98,8 +98,8 @@
             android:textAppearance="?android:attr/textAppearance"
             android:textColor="#ffffff"
             android:gravity="center" />
-	</LinearLayout>
+    </LinearLayout>
 
-    
+
 
 </RelativeLayout>
