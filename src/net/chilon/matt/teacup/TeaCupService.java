@@ -142,7 +142,9 @@ public class TeaCupService extends Service {
         args.context = context;
         args.intent = intent;
 
+        Log.d("TeaCup", "updateMeta getting lock");
         currentMetaLock.lock();
+        Log.d("TeaCup", "updateMeta gotten lock");
         previousMeta = new UpdateMetaTask();
         previousMeta.execute(args);
     }
@@ -243,8 +245,10 @@ public class TeaCupService extends Service {
         }
 
         protected void onPostExecute(Void args) {
-            if (!unlocked)
+            if (!unlocked) {
+                Log.d("TeaCup", "releaseing meta lock");
                 currentMetaLock.unlock();
+            }
         }
 
         protected void onProgressUpdate(Boolean... done) {
@@ -260,6 +264,7 @@ public class TeaCupService extends Service {
 
             if (!unlocked && (done[0] || isCancelled())) {
                 unlocked = true;
+                Log.d("TeaCup", "releasing meta lock");
                 currentMetaLock.unlock();
             }
         }
@@ -269,11 +274,13 @@ public class TeaCupService extends Service {
             currentMeta = getMeta(config, context, intent);
 
             if (currentMeta != null) {
-                publishProgress(false);
+                publishProgress(true);
+                currentMetaLock.lock();
                 if (!isCancelled()) {
                     currentMeta.artBmp = getArtBmp(config, context, currentMeta);
                     publishProgress(true);
                 }
+                currentMetaLock.unlock();
             }
 
             UpdateLastFMArgs args = new UpdateLastFMArgs();
