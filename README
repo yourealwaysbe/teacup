@@ -1,4 +1,9 @@
 
+TeaCup Music Widget
+Contact: Matthew Hague (matthewhague@zoho.com)
+(Or use the issue tracker on github -- please send any errors, players you want
+supporting, working configurations for other players, and so on and so forth.)
+
 A desktop music widget for Android works with stock player by default but allows
 configuration for (hopefully) any player.  Can interact with Last FM: getting
 album art and scrobbling (choose when to connect, can cache when offline).
