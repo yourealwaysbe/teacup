@@ -11,7 +11,6 @@ import android.app.ActivityManager.RunningServiceInfo;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
@@ -65,48 +64,36 @@ public class TeaCup extends AppWidgetProvider {
                          AppWidgetManager appWidgetManager,
                          int[] appWidgetIds) {
         Log.d("TeaCup", "update called with " + appWidgetIds.length + " ids");
-        Config config = new Config(context);
-        makeButtons(context, appWidgetManager, appWidgetIds, config);
+        makeButtons(context, appWidgetManager, appWidgetIds);
         ServiceStarter.restartService(context);
         super.onUpdate(context, appWidgetManager, appWidgetIds);
     }
 
-
-    private void makeButtons(Context context,
-                             AppWidgetManager appWidgetManager,
-                             int[] appWidgetIds,
-                             Config config) {
-        RemoteViews remoteViews = new RemoteViews(context.getPackageName(),
-                                                  R.layout.teacup);
-
+    public static void addButtonsToRemoteViews(Context context, RemoteViews views) {
         PendingIntent playPause = makePendingIntent(context, BTN_PLAY_PAUSE);
         PendingIntent jumpNext = makePendingIntent(context, BTN_JUMP_NEXT);
         PendingIntent jumpPrev = makePendingIntent(context, BTN_JUMP_PREV);
         PendingIntent albumArt = makePendingIntent(context, BTN_ALBUM_ART);
 
-        remoteViews.setOnClickPendingIntent(R.id.playPauseButton, playPause);
-        remoteViews.setOnClickPendingIntent(R.id.jumpNextButton, jumpNext);
-        remoteViews.setOnClickPendingIntent(R.id.jumpPrevButton, jumpPrev);
-        remoteViews.setOnClickPendingIntent(R.id.albumArtButton, albumArt);
+        views.setOnClickPendingIntent(R.id.playPauseButton, playPause);
+        views.setOnClickPendingIntent(R.id.jumpNextButton, jumpNext);
+        views.setOnClickPendingIntent(R.id.jumpPrevButton, jumpPrev);
+        views.setOnClickPendingIntent(R.id.albumArtButton, albumArt);
+    }
+
+    private void makeButtons(Context context,
+                             AppWidgetManager appWidgetManager,
+                             int[] appWidgetIds) {
+        RemoteViews remoteViews = new RemoteViews(context.getPackageName(),
+                                                  R.layout.teacup);
+
+        addButtonsToRemoteViews(context, remoteViews);
 
         appWidgetManager.updateAppWidget(appWidgetIds, remoteViews);
     }
-    
-    private void refreshButton(Context context, 
-    		                   String clickIntent, 
-    		                   int buttonId) {
-        RemoteViews remoteViews = new RemoteViews(context.getPackageName(),
-                R.layout.teacup);
-        
-        PendingIntent pendingIntent = makePendingIntent(context, clickIntent);
-		remoteViews.setOnClickPendingIntent(buttonId, pendingIntent);
-		
-        AppWidgetManager manager = AppWidgetManager.getInstance(context);
-        ComponentName provider = new ComponentName(context, TeaCup.class);
-		manager.updateAppWidget(manager.getAppWidgetIds(provider), remoteViews);
-    }
 
-    private PendingIntent makePendingIntent(Context context, String command) {
+
+    private static PendingIntent makePendingIntent(Context context, String command) {
         Intent i = new Intent(context, TeaCup.class);
         i.setAction(command);
         return PendingIntent.getBroadcast(context, 0, i, 0);
@@ -115,7 +102,6 @@ public class TeaCup extends AppWidgetProvider {
     private void onClickAlbumArt(Context context, Intent intent) {
         PlayerConfig player = new Config(context).getPlayer();
         startMusic(context, player);
-        refreshButton(context, BTN_ALBUM_ART, R.id.albumArtButton);
     }
 
     private void onClickJumpNext(Context context, Intent intent) {
@@ -128,7 +114,6 @@ public class TeaCup extends AppWidgetProvider {
                         player.getJumpNextCommandField(),
                         player.getJumpNextCommand());
         }
-        refreshButton(context, BTN_JUMP_NEXT, R.id.jumpNextButton);
     }
 
     private void onClickJumpPrev(Context context, Intent intent) {
@@ -141,7 +126,6 @@ public class TeaCup extends AppWidgetProvider {
                         player.getJumpPreviousCommandField(),
                         player.getJumpPreviousCommand());
         }
-        refreshButton(context, BTN_JUMP_PREV, R.id.jumpPrevButton);
     }
 
     private void onClickPlayPause(Context context, Intent intent) {
@@ -154,7 +138,6 @@ public class TeaCup extends AppWidgetProvider {
                         player.getPlayPauseCommandField(),
                         player.getPlayPauseCommand());
         }
-        refreshButton(context, BTN_PLAY_PAUSE, R.id.playPauseButton);
     }
 
     private void sendCommand(Context context,

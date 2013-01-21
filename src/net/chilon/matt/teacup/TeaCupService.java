@@ -183,6 +183,8 @@ public class TeaCupService extends Service {
 
         views.setTextViewText(R.id.artistView, artist);
         views.setTextViewText(R.id.titleView,  title);
+        
+        TeaCup.addButtonsToRemoteViews(this, views);
 
         if (artBmp != null)
             views.setImageViewBitmap(R.id.albumArtButton, artBmp);
@@ -200,6 +202,8 @@ public class TeaCupService extends Service {
                                             R.layout.teacup);
 
         views.setImageViewBitmap(R.id.playPauseButton, playButton);
+
+        TeaCup.addButtonsToRemoteViews(this, views);
 
         ComponentName thisWidget = new ComponentName(this, TeaCup.class);
         appWidgetManager.updateAppWidget(thisWidget, views);
