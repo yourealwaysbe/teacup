@@ -7,7 +7,7 @@ package net.chilon.matt.teacup;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.Semaphore;
 
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
@@ -50,7 +50,7 @@ public class TeaCupService extends Service {
     // date, so we lock it so a change to playstate doesn't scrobble out of date
     // meta data: updatelastfm task has to wait for the current meta lock before
     // scrobble update.
-    ReentrantLock currentMetaLock = new ReentrantLock();
+    Semaphore currentMetaMutex = new Semaphore(1);
     MetaData currentMeta = null;
     private boolean currentlyPlaying = false;
 
@@ -143,10 +143,14 @@ public class TeaCupService extends Service {
         args.intent = intent;
 
         Log.d("TeaCup", "updateMeta getting lock");
-        currentMetaLock.lock();
-        Log.d("TeaCup", "updateMeta gotten lock");
-        previousMeta = new UpdateMetaTask();
-        previousMeta.execute(args);
+        try {
+        	currentMetaMutex.acquire();
+        	Log.d("TeaCup", "updateMeta gotten lock");
+        	previousMeta = new UpdateMetaTask();
+        	previousMeta.execute(args);
+        } catch (InterruptedException e) {
+        	Log.d("TeaCup", "updateMeta lock acquisition interrupted.");
+        }
     }
 
 
@@ -251,11 +255,15 @@ public class TeaCupService extends Service {
         protected void onPostExecute(Void args) {
             if (!unlocked) {
                 Log.d("TeaCup", "releaseing meta lock");
-                currentMetaLock.unlock();
+                currentMetaMutex.release();
             }
         }
 
         protected void onProgressUpdate(Boolean... done) {
+            Log.d("TeaCup", "MetaUpdater onProgressUpdate(" +
+                            currentMeta.artist + ", " +
+                            currentMeta.title + ", " +
+                            currentMeta.artBmp);
             if (!isCancelled()) {
                 if (currentMeta != null) {
                     updateWidget(currentMeta.artist,
@@ -269,22 +277,36 @@ public class TeaCupService extends Service {
             if (!unlocked && (done[0] || isCancelled())) {
                 unlocked = true;
                 Log.d("TeaCup", "releasing meta lock");
-                currentMetaLock.unlock();
+                currentMetaMutex.release();
             }
         }
 
 
         private void updateMeta(Config config, Context context, Intent intent) {
+            Log.d("TeaCup", "update meta called.");
             currentMeta = getMeta(config, context, intent);
-
+            Log.d("TeaCup", "got meta.");
             if (currentMeta != null) {
+                Log.d("TeaCup", "it's not null.");
                 publishProgress(true);
-                currentMetaLock.lock();
+                Log.d("TeaCup", "progress published.");
                 if (!isCancelled()) {
-                    currentMeta.artBmp = getArtBmp(config, context, currentMeta);
-                    publishProgress(true);
+                    Log.d("TeaCup", "getting art.");
+                    Bitmap artBmp = getArtBmp(config, context, currentMeta);
+                    Log.d("TeaCup", "gotten and locking.");
+                    try {
+                    	currentMetaMutex.acquire();
+                    	Log.d("TeaCup", "publishing.");
+                    	currentMeta.artBmp = artBmp;
+                    	publishProgress(true);
+                    	Log.d("TeaCup", "published, unlocking.");
+                    } catch (InterruptedException e) {
+                    	Log.d("TeaCup", "update meta task lock acquisition interrupted.");
+                    } finally {
+                    	currentMetaMutex.release();
+                    	Log.d("TeaCup", "done.");
+                    }
                 }
-                currentMetaLock.unlock();
             }
 
             UpdateLastFMArgs args = new UpdateLastFMArgs();
@@ -423,13 +445,13 @@ public class TeaCupService extends Service {
                 String title = null;
                 long length = 0;
 
-                currentMetaLock.lock();
+                currentMetaMutex.acquire();
                 if (currentMeta != null) {
                     artist = currentMeta.artist;
                     title = currentMeta.title;
                     length = currentMeta.length;
                 }
-                currentMetaLock.unlock();
+                currentMetaMutex.release();
 
                 if (artist != null && title != null) {
                     LastFM.scrobbleUpdate(args[0].context,
