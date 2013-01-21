@@ -300,11 +300,9 @@ public class TeaCupService extends Service {
                     	currentMeta.artBmp = artBmp;
                     	publishProgress(true);
                     	Log.d("TeaCup", "published, unlocking.");
+                    	currentMetaMutex.release();
                     } catch (InterruptedException e) {
                     	Log.d("TeaCup", "update meta task lock acquisition interrupted.");
-                    } finally {
-                    	currentMetaMutex.release();
-                    	Log.d("TeaCup", "done.");
                     }
                 }
             }
