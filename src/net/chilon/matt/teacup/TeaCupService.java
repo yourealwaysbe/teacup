@@ -142,15 +142,8 @@ public class TeaCupService extends Service {
         args.context = context;
         args.intent = intent;
 
-        Log.d("TeaCup", "updateMeta getting lock");
-        try {
-        	currentMetaMutex.acquire();
-        	Log.d("TeaCup", "updateMeta gotten lock");
-        	previousMeta = new UpdateMetaTask();
-        	previousMeta.execute(args);
-        } catch (InterruptedException e) {
-        	Log.d("TeaCup", "updateMeta lock acquisition interrupted.");
-        }
+        previousMeta = new UpdateMetaTask();
+        previousMeta.execute(args);
     }
 
 
@@ -243,6 +236,8 @@ public class TeaCupService extends Service {
 
         protected Void doInBackground(UpdateMetaArgs... args) {
             try {
+            	Log.d("TeaCup", "acquiring lock in updatemetatask");
+                currentMetaMutex.acquire();
                 updateMeta(args[0].config,
                            args[0].context,
                            args[0].intent);
