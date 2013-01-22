@@ -236,7 +236,7 @@ public class TeaCupService extends Service {
     }
 
 
-    private class UpdateMetaTask extends AsyncTask<UpdateMetaArgs, Boolean, Void> {
+    private class UpdateMetaTask extends AsyncTask<UpdateMetaArgs, Void, Void> {
 
         // signals we've already released the updateMetaLock
         private boolean unlocked = false;
@@ -254,33 +254,21 @@ public class TeaCupService extends Service {
 
         protected void onPostExecute(Void args) {
             if (!unlocked) {
-                Log.d("TeaCup", "releaseing meta lock");
-                currentMetaMutex.release();
-            }
-        }
-
-        protected void onProgressUpdate(Boolean... done) {
-            Log.d("TeaCup", "MetaUpdater onProgressUpdate(" +
-                            currentMeta.artist + ", " +
-                            currentMeta.title + ", " +
-                            currentMeta.artBmp);
-            if (!isCancelled()) {
-                if (currentMeta != null) {
-                    updateWidget(currentMeta.artist,
-                                 currentMeta.title,
-                                 currentMeta.artBmp);
-                } else {
-                    resetWidget();
-                }
-            }
-
-            if (!unlocked && (done[0] || isCancelled())) {
-                unlocked = true;
                 Log.d("TeaCup", "releasing meta lock");
                 currentMetaMutex.release();
             }
         }
+        
+        protected void onCancelled() {
+        	if (!unlocked) {
+        		Log.d("TeaCup", "cancelled async releasing lock");
+        		currentMetaMutex.release();
+        	}
+        }
 
+        protected void onCancelled(Void args) {
+        	onCancelled();
+        }
 
         private void updateMeta(Config config, Context context, Intent intent) {
             Log.d("TeaCup", "update meta called.");
@@ -288,7 +276,13 @@ public class TeaCupService extends Service {
             Log.d("TeaCup", "got meta.");
             if (currentMeta != null) {
                 Log.d("TeaCup", "it's not null.");
-                publishProgress(true);
+                if (!isCancelled()) {
+                	updateWidget(currentMeta.artist,
+                		         currentMeta.title,
+                		         null);
+                }
+                currentMetaMutex.release();
+                unlocked = true;
                 Log.d("TeaCup", "progress published.");
                 if (!isCancelled()) {
                     Log.d("TeaCup", "getting art.");
@@ -296,11 +290,18 @@ public class TeaCupService extends Service {
                     Log.d("TeaCup", "gotten and locking.");
                     try {
                     	currentMetaMutex.acquire();
+                    	unlocked = false;
                     	Log.d("TeaCup", "publishing.");
                     	currentMeta.artBmp = artBmp;
-                    	publishProgress(true);
+                    	if (!isCancelled()) {
+                    		updateWidget(currentMeta.artist,
+                    				     currentMeta.title,
+                    				     currentMeta.artBmp);
+                    	}
                     	Log.d("TeaCup", "published, unlocking.");
                     	currentMetaMutex.release();
+                    	Log.d("TeaCup", "unlocked state: " + currentMetaMutex.availablePermits());
+                    	unlocked = true;
                     } catch (InterruptedException e) {
                     	Log.d("TeaCup", "update meta task lock acquisition interrupted.");
                     }

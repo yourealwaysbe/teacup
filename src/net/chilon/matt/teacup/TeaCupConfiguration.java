@@ -16,6 +16,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -60,7 +61,9 @@ public class TeaCupConfiguration extends Activity {
     private static final String LASTFM_URL = "http://www.lastfm.com";
 
     protected void onCreate(Bundle savedInstanceState) {
+    	Log.d("TeaCup", "configuration oncreate");
         super.onCreate(savedInstanceState);
+        Log.d("TeaCup", "configuration done super");
 
         Intent launchIntent = getIntent();
         Bundle extras = launchIntent.getExtras();
@@ -71,15 +74,21 @@ public class TeaCupConfiguration extends Activity {
             teaCupId = AppWidgetManager.INVALID_APPWIDGET_ID;
         }
 
+        Log.d("TeaCup", "configuration set content view");
         setContentView(R.layout.configuration);
 
+        Log.d("TeaCup", "configuration load config");
         Config config = new Config((Context)this);
+        Log.d("TeaCup", "configuration write to activity");
         config.writeConfigToActivity(this);
 
+        Log.d("TeaCup", "configuration adjust view");
         showHideCustomOptions(config.getPlayer().getPlayerId());
         adjustLastFMVisibility();
         adjustScrobbleVisibility();
         setLegalText();
+        
+        Log.d("TeaCup", "set up buttons");
 
         Button ok = (Button) findViewById(R.id.okbutton);
         ok.setOnClickListener(new OnClickListener() {
