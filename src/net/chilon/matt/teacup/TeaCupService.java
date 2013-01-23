@@ -44,14 +44,7 @@ public class TeaCupService extends Service {
         Bitmap artBmp = null;
     }
 
-    // ugh, concurrency...
-    // meta data updated by asynctask because of database lookup
-    // but as soon as updatemeta broadcast received we know currentMeta is out of
-    // date, so we lock it so a change to playstate doesn't scrobble out of date
-    // meta data: updatelastfm task has to wait for the current meta lock before
-    // scrobble update.
-    Semaphore currentMetaMutex = new Semaphore(1);
-    MetaData currentMeta = null;
+    MetaData currentMeta = new MetaData();
     private boolean currentlyPlaying = false;
 
     private static UpdateMetaTask previousMeta = null;
@@ -231,13 +224,8 @@ public class TeaCupService extends Service {
 
     private class UpdateMetaTask extends AsyncTask<UpdateMetaArgs, Void, Void> {
 
-        // signals we've already released the updateMetaLock
-        private boolean unlocked = false;
-
         protected Void doInBackground(UpdateMetaArgs... args) {
             try {
-            	Log.d("TeaCup", "acquiring lock in updatemetatask");
-                currentMetaMutex.acquire();
                 updateMeta(args[0].config,
                            args[0].context,
                            args[0].intent);
@@ -247,59 +235,28 @@ public class TeaCupService extends Service {
             return null;
         }
 
-        protected void onPostExecute(Void args) {
-            if (!unlocked) {
-                Log.d("TeaCup", "releasing meta lock");
-                currentMetaMutex.release();
-            }
-        }
-        
-        protected void onCancelled() {
-        	if (!unlocked) {
-        		Log.d("TeaCup", "cancelled async releasing lock");
-        		currentMetaMutex.release();
-        	}
-        }
-
-        protected void onCancelled(Void args) {
-        	onCancelled();
-        }
-
         private void updateMeta(Config config, Context context, Intent intent) {
             Log.d("TeaCup", "update meta called.");
-            currentMeta = getMeta(config, context, intent);
-            Log.d("TeaCup", "got meta.");
-            if (currentMeta != null) {
-                Log.d("TeaCup", "it's not null.");
-                if (!isCancelled()) {
-                	updateWidget(currentMeta.artist,
-                		         currentMeta.title,
-                		         null);
-                }
-                currentMetaMutex.release();
-                unlocked = true;
-                Log.d("TeaCup", "progress published.");
-                if (!isCancelled()) {
-                    Log.d("TeaCup", "getting art.");
-                    Bitmap artBmp = getArtBmp(config, context, currentMeta);
-                    Log.d("TeaCup", "gotten and locking.");
-                    try {
-                    	currentMetaMutex.acquire();
-                    	unlocked = false;
-                    	Log.d("TeaCup", "publishing.");
-                    	currentMeta.artBmp = artBmp;
-                    	if (!isCancelled()) {
-                    		updateWidget(currentMeta.artist,
-                    				     currentMeta.title,
-                    				     currentMeta.artBmp);
-                    	}
-                    	Log.d("TeaCup", "published, unlocking.");
-                    	currentMetaMutex.release();
-                    	Log.d("TeaCup", "unlocked state: " + currentMetaMutex.availablePermits());
-                    	unlocked = true;
-                    } catch (InterruptedException e) {
-                    	Log.d("TeaCup", "update meta task lock acquisition interrupted.");
+            synchronized (currentMeta) {
+                currentMeta = getMeta(config, context, intent);
+                if (currentMeta != null) {
+                    Log.d("TeaCup", "it's not null.");
+                    if (!isCancelled()) {
+                        updateWidget(currentMeta.artist,
+                                     currentMeta.title,
+                                     null);
                     }
+                }
+            }
+    
+            Bitmap artBmp = getArtBmp(config, context, currentMeta);
+
+            synchronized (currentMeta) {
+                if (!isCancelled()) {
+                    	currentMeta.artBmp = artBmp;
+                        updateWidget(currentMeta.artist,
+                    				 currentMeta.title,
+                    				 currentMeta.artBmp);
                 }
             }
 
@@ -439,13 +396,11 @@ public class TeaCupService extends Service {
                 String title = null;
                 long length = 0;
 
-                currentMetaMutex.acquire();
-                if (currentMeta != null) {
+                synchronized (currentMeta) {
                     artist = currentMeta.artist;
                     title = currentMeta.title;
                     length = currentMeta.length;
                 }
-                currentMetaMutex.release();
 
                 if (artist != null && title != null) {
                     LastFM.scrobbleUpdate(args[0].context,
