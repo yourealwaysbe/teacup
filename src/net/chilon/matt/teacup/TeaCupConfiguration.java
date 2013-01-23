@@ -61,7 +61,7 @@ public class TeaCupConfiguration extends Activity {
     private static final String LASTFM_URL = "http://www.lastfm.com";
 
     protected void onCreate(Bundle savedInstanceState) {
-    	Log.d("TeaCup", "configuration oncreate");
+        Log.d("TeaCup", "configuration oncreate");
         super.onCreate(savedInstanceState);
         Log.d("TeaCup", "configuration done super");
 
@@ -87,7 +87,7 @@ public class TeaCupConfiguration extends Activity {
         adjustLastFMVisibility();
         adjustScrobbleVisibility();
         setLegalText();
-        
+
         Log.d("TeaCup", "set up buttons");
 
         Button ok = (Button) findViewById(R.id.okbutton);

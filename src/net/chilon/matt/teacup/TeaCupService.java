@@ -173,7 +173,7 @@ public class TeaCupService extends Service {
 
         views.setTextViewText(R.id.artistView, artist);
         views.setTextViewText(R.id.titleView,  title);
-        
+
         TeaCup.addButtonsToRemoteViews(this, views);
 
         if (artBmp != null)
@@ -259,10 +259,10 @@ public class TeaCupService extends Service {
                 synchronized (currentMeta) {
                     if (!isCancelled() &&
                         meta == currentMeta) {
-                    	currentMeta.artBmp = artBmp;
+                        currentMeta.artBmp = artBmp;
                         updateWidget(meta.artist,
-                    				 meta.title,
-                    				 meta.artBmp);
+                                     meta.title,
+                                     meta.artBmp);
                     }
                 }
             }
