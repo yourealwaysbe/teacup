@@ -237,8 +237,9 @@ public class TeaCupService extends Service {
 
         private void updateMeta(Config config, Context context, Intent intent) {
             Log.d("TeaCup", "update meta called.");
+            MetaData meta = null;
             synchronized (currentMeta) {
-                MetaData meta = getMeta(config, context, intent);
+                meta = getMeta(config, context, intent);
                 if (meta.artist != null &&
                     meta.title != null &&
                     !isCancelled()) {
@@ -249,7 +250,8 @@ public class TeaCupService extends Service {
                 currentMeta = meta;
             }
 
-            if (meta.artist != null &&
+            if (meta != null &&
+                meta.artist != null &&
                 meta.title != null &&
                 !isCancelled()) {
                 Bitmap artBmp = getArtBmp(config, context, meta);
@@ -271,9 +273,9 @@ public class TeaCupService extends Service {
             new UpdateLastFMTask().execute(args);
         }
 
-        private void getMeta(Config config,
-                             Context context,
-                             Intent intent) {
+        private MetaData getMeta(Config config,
+                                 Context context,
+                                 Intent intent) {
             String idField = config.getPlayer().getMetaChangedId();
             long id = intent.getLongExtra(idField, INVALID_ID);
 
