@@ -238,25 +238,30 @@ public class TeaCupService extends Service {
         private void updateMeta(Config config, Context context, Intent intent) {
             Log.d("TeaCup", "update meta called.");
             synchronized (currentMeta) {
-                currentMeta = getMeta(config, context, intent);
-                if (currentMeta != null) {
-                    Log.d("TeaCup", "it's not null.");
-                    if (!isCancelled()) {
-                        updateWidget(currentMeta.artist,
-                                     currentMeta.title,
-                                     null);
-                    }
+                MetaData meta = getMeta(config, context, intent);
+                if (meta.artist != null &&
+                    meta.title != null &&
+                    !isCancelled()) {
+                    updateWidget(meta.artist,
+                                 meta.title,
+                                 null);
                 }
+                currentMeta = meta;
             }
-    
-            Bitmap artBmp = getArtBmp(config, context, currentMeta);
 
-            synchronized (currentMeta) {
-                if (!isCancelled()) {
+            if (meta.artist != null &&
+                meta.title != null &&
+                !isCancelled()) {
+                Bitmap artBmp = getArtBmp(config, context, meta);
+
+                synchronized (currentMeta) {
+                    if (!isCancelled() &&
+                        meta == currentMeta) {
                     	currentMeta.artBmp = artBmp;
-                        updateWidget(currentMeta.artist,
-                    				 currentMeta.title,
-                    				 currentMeta.artBmp);
+                        updateWidget(meta.artist,
+                    				 meta.title,
+                    				 meta.artBmp);
+                    }
                 }
             }
 
@@ -266,13 +271,13 @@ public class TeaCupService extends Service {
             new UpdateLastFMTask().execute(args);
         }
 
-        private MetaData getMeta(Config config,
-                                 Context context,
-                                 Intent intent) {
+        private void getMeta(Config config,
+                             Context context,
+                             Intent intent) {
             String idField = config.getPlayer().getMetaChangedId();
             long id = intent.getLongExtra(idField, INVALID_ID);
 
-            MetaData meta = null;
+            MetaData meta = new MetaData();
 
             if (id  != INVALID_ID) {
                 String selectionArgs[] = {
