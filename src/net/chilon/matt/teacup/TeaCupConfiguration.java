@@ -337,6 +337,7 @@ public class TeaCupConfiguration extends Activity {
             Button prefetchButton = (Button) findViewById(R.id.prefetchLastFMArt);
 
             progress.setVisibility(View.GONE);
+            prefetchButton.requestFocus();
             prefetchButton.setText(R.string.lastFMPrefetchAlbumArt);
 
             done = true;
@@ -383,6 +384,7 @@ public class TeaCupConfiguration extends Activity {
             Button testButton = (Button) findViewById(R.id.testLastFMAuth);
             String text = getResources().getString(R.string.testLastFMAuthResponse);
             text = String.format(text, message);
+            testButton.requestFocus();
             testButton.setText(text);
         }
 

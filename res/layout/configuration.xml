@@ -149,6 +149,7 @@
             android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:text="@string/lastFMPrefetchAlbumArt"
+            android:focusable="true"
             android:onClick="onClickPrefetchLastFMArt" />
 
         <ProgressBar
@@ -201,6 +202,7 @@
         android:layout_below="@id/lastFMScrobbleCache"
         android:layout_centerHorizontal="true"
         android:text="@string/lastFMClearCache"
+        android:focusable="true"
         android:onClick="onClickLastFMClearCache" />
 
 
@@ -246,7 +248,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/testLastFMAuth"
-            android:onClick="onClickTestLastFMAuth" />
+            android:onClick="onClickTestLastFMAuth"
+            android:focusable="true" />
     </LinearLayout>
 
 
