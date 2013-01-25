@@ -263,6 +263,12 @@ public class TeaCupConfiguration extends Activity {
         adjustScrobbleVisibility();
     }
 
+    public void onClickTestLastFMAuth(View view) {
+        Config config = new Config(self);
+        TestLastFMAuthTask tester = new TestLastFMAuthTask();
+        tester.execute(config);
+    }
+
     private void adjustScrobbleVisibility() {
         CheckBox wifi = (CheckBox) findViewById(R.id.lastFMScrobbleWifi);
         CheckBox network = (CheckBox) findViewById(R.id.lastFMScrobbleNetwork);
@@ -348,4 +354,38 @@ public class TeaCupConfiguration extends Activity {
             return done;
         }
     }
+
+    private class TestLastFMAuthTask extends AsyncTask<Config, 
+                                                       Void, 
+                                                       LastFM.AuthResult> {
+
+        protected LastFM.AuthResult doInBackground(Config... config) {
+            return LastFM.testLastFMAuthentication(self, config[0]);
+        }
+
+        protected void onPostExecute(LastFM.AuthResult result) {
+            String message;
+
+            switch (result.getResponse()) {
+            case NOCONNECTION:
+                message = getResources().getString(R.string.testLastFMNoAuthConnection);
+                break;
+            case BADREPLY:
+                message = getResources().getString(R.string.testLastFMBadReply);
+                break;
+            case OK:
+                message = getResources().getString(R.string.testLastFMAuthOK);
+                break;
+            default:
+                message = result.getValue();
+            }
+
+            Button testButton = (Button) findViewById(R.id.testLastFMAuth);
+            String text = getResources().getString(R.string.testLastFMAuthResponse);
+            text = String.format(text, message);
+            testButton.setText(text);
+        }
+
+    }
+
 }

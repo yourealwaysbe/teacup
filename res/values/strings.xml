@@ -33,6 +33,12 @@
     <string name="lastFMClearCache">Clear Scrobble Cache \n (Cur. Size: %d bytes.)</string>
     <string name="lastFMButtonHint">Last FM</string>
 
+    <string name="testLastFMBadReply">Error connecting to Last FM.</string>
+    <string name="testLastFMNoAuthConnection">No connection.</string>
+    <string name="testLastFMAuth">Test Authentication</string>
+    <string name="testLastFMAuthResponse">Test Authentication \n (%s)</string>
+    <string name="testLastFMAuthOK">OK</string>
+
     <string name="playPauseDesc">Play/Pause.</string>
     <string name="noartist">Shh!</string>
     <string name="jumpNextDesc">Jump to next track.</string>

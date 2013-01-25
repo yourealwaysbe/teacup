@@ -54,6 +54,22 @@ import android.util.Log;
 import android.content.SharedPreferences;
 
 public class LastFM {
+    public enum AuthResponse {
+        OK, NOCONNECTION, BADREPLY, LASTFMERROR
+    }
+
+    static public class AuthResult {
+        private AuthResponse response;
+        private String value;
+
+        public AuthResult(AuthResponse response, String value) {
+            this.response = response;
+            this.value = value;
+        }
+
+        public AuthResponse getResponse() { return response; }
+        public String getValue() { return value; }
+    }
 
     public enum PrefetchState {
         OK, NOCONNECTION, CANCELLED
@@ -95,13 +111,14 @@ public class LastFM {
     private static final String LFM_TAG = "lfm";
     private static final String LFM_STATUS_ATTR = "status";
     private static final String LFM_STATUS_OK = "ok";
+    private static final String KEY_TAG = "key";
+    private static final String ERROR_TAG = "error";
 
     private static final Set<String> SIMILAR_TAG_SET
         = new HashSet<String>() {{
             add(SIMILAR_TAG);
         }};
 
-    private static final String KEY_TAG = "key";
 
     private static final String ALBUM_ART_TEMPLATE
         = API_ROOT + "?" +
@@ -392,6 +409,27 @@ public class LastFM {
         }
     }
 
+    public static AuthResult testLastFMAuthentication(Context context, 
+                                                      Config config) {
+        boolean wifi = config.getLastFMScrobbleWifi();
+        boolean network = config.getLastFMScrobbleNetwork();
+
+        boolean connect = shouldConnect(context, wifi, network);
+        if (!connect) {
+            return new AuthResult(AuthResponse.NOCONNECTION, null);
+        }
+
+        try {
+            AuthResult result = getSessionKey(context, config, false);
+            if (result.getResponse() == AuthResponse.OK)
+                return new AuthResult(AuthResponse.OK, "<key redacted>");
+            else
+                return result;
+        } catch (Exception e) {
+            return new AuthResult(AuthResponse.BADREPLY, e.getMessage());
+        }
+    }
+
     private static void cutDownCacheFile(Context context, int num) {
         FileInputStream fis = null;
         FileOutputStream fos = null;
@@ -454,7 +492,7 @@ public class LastFM {
                                              String artist,
                                              BufferedReader buf)
                 throws IOException, InterruptedException {
-        String sessionKey = getSessionKey(context,  config,  true);
+        String sessionKey = pureGetSessionKey(context,  config,  true);
 
         ArrayList<NameValuePair> vals = new ArrayList<NameValuePair>(4);
         vals.add(new BasicNameValuePair(SESSION_KEY_ARG, sessionKey));
@@ -489,7 +527,7 @@ public class LastFM {
         if (!ok) {
             Log.d("TeaCup", "retrying batch scrobble");
             // retry once with fresh key
-            sessionKey = getSessionKey(context, config, false);
+            sessionKey = pureGetSessionKey(context, config, false);
             vals.remove(vals.size() - 1);
             resetNameValue(SESSION_KEY_ARG, sessionKey, vals);
             apiSig = makeApiSig(vals);
@@ -527,7 +565,7 @@ public class LastFM {
             throws InterruptedException {
         Log.d("TeaCup", "scrobble " + artist + ", " + title + ".");
         try {
-            String sessionKey = getSessionKey(context, config, true);
+            String sessionKey = pureGetSessionKey(context, config, true);
             String timestamp = Long.toString(time / 1000);
 
             ArrayList<NameValuePair> vals = new ArrayList<NameValuePair>(4);
@@ -545,7 +583,7 @@ public class LastFM {
             if (!ok) {
                 Log.d("TeaCup", "retrying scrobble");
                 // retry once with fresh key
-                sessionKey = getSessionKey(context, config, false);
+                sessionKey = pureGetSessionKey(context, config, false);
                 vals.remove(vals.size() - 1);
                 resetNameValue(SESSION_KEY_ARG, sessionKey, vals);
                 apiSig = makeApiSig(vals);
@@ -602,7 +640,7 @@ public class LastFM {
             throws InterruptedException {
         Log.d("TeaCup", "now playing " + artist + ", " + title + ".");
         try {
-            String sessionKey = getSessionKey(context, config, true);
+            String sessionKey = pureGetSessionKey(context, config, true);
             String strLength = Long.toString(length / 1000);
 
             ArrayList<NameValuePair> vals = new ArrayList<NameValuePair>(6);
@@ -620,7 +658,7 @@ public class LastFM {
             if (!ok) {
                 Log.d("TeaCup", "retrying now playing");
                 // retry once with fresh key
-                sessionKey = getSessionKey(context, config, false);
+                sessionKey = pureGetSessionKey(context, config, false);
                 vals.remove(vals.size() - 1);
                 resetNameValue(SESSION_KEY_ARG, sessionKey, vals);
                 apiSig = makeApiSig(vals);
@@ -633,22 +671,35 @@ public class LastFM {
 
             Log.d("TeaCup", "done now playing " + artist + ", " + title + ".");
         } catch (IOException e) {
-            Log.e("TeaCup", "now playing ioexception", e);
+            Log.v("TeaCup", "now playing ioexception", e);
         }
     }
 
-
-    private static String getSessionKey(Context context,
-                                        Config config,
-                                        boolean tryStoredKey)
+    
+    private static String pureGetSessionKey(Context context,
+                                            Config config,
+                                            boolean tryStoredKey)
                 throws IOException, InterruptedException {
-        String key = "";
+        AuthResult result = getSessionKey(context,  config,  true);
+        if (result.getResponse() != AuthResponse.OK) 
+            throw new IOException(result.getValue());
+        return result.getValue();
+    }
+
+
+    private static AuthResult getSessionKey(Context context,
+                                            Config config,
+                                            boolean tryStoredKey)
+                throws IOException, InterruptedException {
+        AuthResult result = null;
 
         synchronized (PREFS_FILE) {
             String username = config.getLastFMUserName();
             String password = config.getLastFMPassword();
 
             SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, 0);
+
+            String key = "";
 
             if (tryStoredKey) {
                 String sessionUsername = prefs.getString(SESSION_KEY_USERNAME, "");
@@ -659,7 +710,9 @@ public class LastFM {
             }
 
             // request key
-            if ("".equals(key)) {
+            if (!"".equals(key)) {
+                result = new AuthResult(AuthResponse.OK, key);
+            } else {
                 ArrayList<NameValuePair> vals = new ArrayList<NameValuePair>(5);
                 vals.add(new BasicNameValuePair(API_KEY_ARG, API_KEY));
                 vals.add(new BasicNameValuePair(METHOD_ARG, GET_MOBILE_SESSION));
@@ -671,24 +724,18 @@ public class LastFM {
 
                 HttpResponse response = postRequest(SECURE_API_ROOT, vals);
                 HttpEntity entity = response.getEntity();
-                if (entity != null) {
-                    key = grabXmlTag(entity.getContent(), KEY_TAG);
-                    if (key != null) {
-                        SharedPreferences.Editor edit = prefs.edit();
-                        edit.putString(SESSION_KEY_USERNAME, username);
-                        edit.putString(SESSION_KEY_PASSWORD, password);
-                        edit.putString(SESSION_KEY, key);
-                        edit.commit();
-                    } else {
-                        key = "";
-                    }
+                result = parseLastFMSessionResponse(entity.getContent());
+                if (result.response == AuthResponse.OK) {
+                    SharedPreferences.Editor edit = prefs.edit();
+                    edit.putString(SESSION_KEY_USERNAME, username);
+                    edit.putString(SESSION_KEY_PASSWORD, password);
+                    edit.putString(SESSION_KEY, result.getValue());
+                    edit.commit();
                 }
             }
-
-            Log.d("TeaCup", "gotsessionkey: " + key);
         }
 
-        return key;
+        return result;
     }
 
 
@@ -928,7 +975,7 @@ public class LastFM {
                     }
                 } else {
                     if (eventType == XmlPullParser.START_TAG &&
-                            tagName.equals(xpp.getName())) {
+                        tagName.equals(xpp.getName())) {
                         if (attrName != null) {
                             String val = xpp.getAttributeValue(LFM_NAMESPACE, attrName);
                             if (attrVal.equals(val)) {
@@ -954,6 +1001,55 @@ public class LastFM {
 
         return null;
     }
+
+
+    private static AuthResult parseLastFMSessionResponse(InputStream is) {
+        AuthResponse response = null;
+        String value = null;
+
+        try {
+            XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+            factory.setNamespaceAware(false);
+            XmlPullParser xpp = factory.newPullParser();
+
+            xpp.setInput(is, null);
+
+            int eventType = xpp.getEventType();
+
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                if (eventType == XmlPullParser.START_TAG) {
+                    if (LFM_TAG.equals(xpp.getName())) {
+                        String val = xpp.getAttributeValue(LFM_NAMESPACE, LFM_STATUS_ATTR);
+                        if (LFM_STATUS_OK.equals(val)) {
+                            response = AuthResponse.OK;
+                        } else {
+                            response = AuthResponse.LASTFMERROR;
+                        }
+                    } else if (KEY_TAG.equals(xpp.getName()) ||
+                               ERROR_TAG.equals(xpp.getName())) {
+                        xpp.next();
+                        value = xpp.getText();
+                    }
+                }
+                
+                xpp.next();
+                eventType = xpp.getEventType();
+            }
+        } catch (XmlPullParserException e) {
+            // do nothing
+            Log.d("TeaCup", "grabXmlTag xmlpullparserexception", e);
+        } catch (IOException e) {
+            // do nothing
+            Log.d("TeaCup", "grabXmlTag ioexception", e);
+        }
+
+        if (response != null && value != null) {
+            return new AuthResult(response, value);
+        } else {
+            return new AuthResult(AuthResponse.BADREPLY, null);
+        }
+    }
+
 
     private static boolean lfmIsOK(HttpResponse response) {
         try {

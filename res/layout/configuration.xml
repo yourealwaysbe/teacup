@@ -210,7 +210,8 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/lastFMClearCache"
         android:orientation="vertical"
-        android:visibility="gone">
+        android:visibility="gone"
+        android:gravity="center">
 
         <TextView
             android:id="@+id/lastFMUserNameDesc"
@@ -240,6 +241,12 @@
             android:inputType="textPassword"
             android:hint="@string/lastFMPasswordHint"/>
 
+        <Button
+            android:id="@+id/testLastFMAuth"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/testLastFMAuth"
+            android:onClick="onClickTestLastFMAuth" />
     </LinearLayout>
 
 
