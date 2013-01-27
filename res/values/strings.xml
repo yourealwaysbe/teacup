@@ -37,6 +37,7 @@
     <string name="testLastFMNoAuthConnection">No connection.</string>
     <string name="testLastFMAuth">Test Authentication</string>
     <string name="testLastFMAuthResponse">Test Authentication \n (%s)</string>
+    <string name="testLastFMAuthWaiting">Test Authentication \n (...)</string>
     <string name="testLastFMAuthOK">OK</string>
 
     <string name="playPauseDesc">Play/Pause.</string>

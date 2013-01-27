@@ -21,6 +21,16 @@ Written and tested for Android 2.3.3 (Android 10) on a Samsung Galaxy Mini 2,
 but seems to compile and work in emulators for 4.2 (Android 17).
 
 
+CHANGES
+
+    v1.1:
+
+        Better concurrency handling, buttons don't stop working after changing
+        language.  Basically less crashy...
+        
+        Test Last FM authentication button.
+
+
 PERMISSIONS:
 
     The widget needs permission to know when your phone has just booted up.

@@ -1028,7 +1028,7 @@ public class LastFM {
                     } else if (KEY_TAG.equals(xpp.getName()) ||
                                ERROR_TAG.equals(xpp.getName())) {
                         xpp.next();
-                        value = xpp.getText();
+                        value = xpp.getText().trim();
                     }
                 }
                 

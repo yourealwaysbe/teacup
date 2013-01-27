@@ -265,6 +265,11 @@ public class TeaCupConfiguration extends Activity {
 
     public void onClickTestLastFMAuth(View view) {
         Config config = new Config(self);
+
+        Button testButton = (Button) findViewById(R.id.testLastFMAuth);
+        String text = getResources().getString(R.string.testLastFMAuthWaiting);
+        testButton.setText(text);
+
         TestLastFMAuthTask tester = new TestLastFMAuthTask();
         tester.execute(config);
     }
