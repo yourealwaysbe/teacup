@@ -980,11 +980,11 @@ public class LastFM {
                             String val = xpp.getAttributeValue(LFM_NAMESPACE, attrName);
                             if (attrVal.equals(val)) {
                                 xpp.next();
-                                return xpp.getText();
+                                return xpp.getText().trim();
                             }
                         } else {
                             xpp.next();
-                            return xpp.getText();
+                            return xpp.getText().trim();
                         }
                     }
                 }
