@@ -159,6 +159,8 @@ public class LastFM {
 
 
     private static final String PREFS_FILE = "lastfm";
+    private static final long INVALID_ID = -1;
+    private static final String CUR_TRACK_ID = "track-id";
     private static final String CUR_TRACK_ARTIST = "track-artist";
     private static final String CUR_TRACK_TITLE = "track-title";
     private static final String CUR_TRACK_BEGAN = "track-began";
@@ -251,6 +253,7 @@ public class LastFM {
 
     public static void scrobbleUpdate(Context context,
                                       Config config,
+                                      long id,
                                       String artist,
                                       String title,
                                       long trackLen,
@@ -268,16 +271,15 @@ public class LastFM {
             synchronized (PREFS_FILE) {
                 SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, 0);
 
+                long curId = prefs.getLong(CUR_TRACK_ID, INVALID_ID);
                 String curArtist = prefs.getString(CUR_TRACK_ARTIST, "");
                 String curTitle = prefs.getString(CUR_TRACK_TITLE, "");
                 long timeBegan = prefs.getLong(CUR_TRACK_BEGAN, -1);
                 long curTrackLen = prefs.getLong(CUR_TRACK_LEN, 0);
 
-                Log.d("TeaCup", "from prefs " + curArtist + ", " + curTitle + ", " + curTrackLen);
+                Log.d("TeaCup", "from prefs " + curId + ", " + curArtist + ", " + curTitle + ", " + curTrackLen);
 
-                if (!curArtist.equals(artist) ||
-                     !curTitle.equals(title) ||
-                     !playing) {
+                if (curId != id || !playing) {
                     Log.d("TeaCup", "passed");
                     Log.d("TeaCup", "played for " + (now - timeBegan) + " from " + timeBegan + " vs " + (curTrackLen / 2));
                     long playedFor = now - timeBegan;
@@ -297,12 +299,14 @@ public class LastFM {
                     SharedPreferences.Editor edit = prefs.edit();
                     if (playing) {
                         Log.d("TeaCup", "putting args");
+                        edit.putLong(CUR_TRACK_ID, id);
                         edit.putString(CUR_TRACK_ARTIST, artist);
                         edit.putString(CUR_TRACK_TITLE, title);
                         edit.putLong(CUR_TRACK_BEGAN, now);
                         edit.putLong(CUR_TRACK_LEN, trackLen);
                     } else {
                         Log.d("TeaCup", "putting null");
+                        edit.putLong(CUR_TRACK_ID, INVALID_ID);
                         edit.putString(CUR_TRACK_ARTIST, "");
                         edit.putString(CUR_TRACK_TITLE, "");
                         edit.putLong(CUR_TRACK_BEGAN, -1);

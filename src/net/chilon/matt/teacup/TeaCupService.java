@@ -36,6 +36,7 @@ public class TeaCupService extends Service {
     private static final int INVALID_ID = -1;
 
     private class MetaData {
+        long id = INVALID_ID;
         String artist = null;
         String album = null;
         String title = null;
@@ -302,6 +303,7 @@ public class TeaCupService extends Service {
                 if (result.getCount() > 0) {
                     result.moveToFirst();
                     meta = new MetaData();
+                    meta.id = id;
                     meta.artist = result.getString(0);
                     meta.album = result.getString(1);
                     meta.title = result.getString(2);
@@ -399,19 +401,22 @@ public class TeaCupService extends Service {
 
         protected Void doInBackground(UpdateLastFMArgs... args) {
             try {
+                long id = INVALID_ID;
                 String artist = null;
                 String title = null;
                 long length = 0;
 
                 synchronized (currentMeta) {
+                    id = currentMeta.id;
                     artist = currentMeta.artist;
                     title = currentMeta.title;
                     length = currentMeta.length;
                 }
 
-                if (artist != null && title != null) {
+                if (id != INVALID_ID && artist != null && title != null) {
                     LastFM.scrobbleUpdate(args[0].context,
                                           args[0].config,
+                                          id,
                                           artist,
                                           title,
                                           length,
