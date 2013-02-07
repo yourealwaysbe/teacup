@@ -23,6 +23,11 @@ but seems to compile and work in emulators for 4.2 (Android 17).
 
 CHANGES
 
+    v1.2:
+        
+        Last FM pays attention to track ID now, not just name (as e.g. Bjork's
+        Bastards album is 12 tracks with the same name...)
+
     v1.1:
 
         Better concurrency handling, buttons don't stop working after changing
