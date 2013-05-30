@@ -984,11 +984,13 @@ public class LastFM {
                             String val = xpp.getAttributeValue(LFM_NAMESPACE, attrName);
                             if (attrVal.equals(val)) {
                                 xpp.next();
-                                return xpp.getText().trim();
+                                String text = xpp.getText();
+                                return text == null ? null : text.trim();
                             }
                         } else {
                             xpp.next();
-                            return xpp.getText().trim();
+                            String text = xpp.getText();
+                            return text == null ? null : text.trim();
                         }
                     }
                 }
@@ -1032,7 +1034,8 @@ public class LastFM {
                     } else if (KEY_TAG.equals(xpp.getName()) ||
                                ERROR_TAG.equals(xpp.getName())) {
                         xpp.next();
-                        value = xpp.getText().trim();
+                        String text = xpp.getText();
+                        value = (text == null ? null : text.trim());
                     }
                 }
                 
