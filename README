@@ -23,6 +23,10 @@ but seems to compile and work in emulators for 4.2 (Android 17).
 
 CHANGES
 
+    v1.3:
+
+        Bug fix when fetching album art.
+
     v1.2:
         
         Last FM pays attention to track ID now, not just name (as e.g. Bjork's
