@@ -23,6 +23,15 @@ but seems to compile and work in emulators for 4.2 (Android 17).
 
 CHANGES
 
+    v1.4:
+
+        Re-orders incorrectly ordered SSL Certificates (code borrowed from
+        Chariot Solutions:
+        http://blog.chariotsolutions.com/2013/01/https-with-client-certificates-on.html)
+
+        When storing album art in a separate directory, .nomedia is created to
+        keep the gallery clean.
+
     v1.3:
 
         Bug fix when fetching album art.
