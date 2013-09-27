@@ -14,6 +14,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -21,6 +22,9 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.KeyStore;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -28,6 +32,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.HttpsURLConnection;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -52,6 +61,9 @@ import android.net.NetworkInfo;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.content.SharedPreferences;
+
+import com.chariotsolutions.example.http.CustomTrustManager;
+
 
 public class LastFM {
     public enum AuthResponse {
@@ -171,6 +183,8 @@ public class LastFM {
     private static final String SESSION_KEY_PASSWORD = "session-key-password";
     private static final long FOUR_MINUTES = 240000;
     private static final long THIRTY_SECONDS = 30000;
+
+    private static final String NOMEDIA = ".nomedia";
 
     public static Bitmap getArt(Context context,
                                 Config config,
@@ -726,9 +740,8 @@ public class LastFM {
                 String apiSig = makeApiSig(vals);
                 vals.add(new BasicNameValuePair(API_SIG_ARG, apiSig));
 
-                HttpResponse response = postRequest(SECURE_API_ROOT, vals);
-                HttpEntity entity = response.getEntity();
-                result = parseLastFMSessionResponse(entity.getContent());
+                URLConnection connection = postRequest(SECURE_API_ROOT, vals);
+                result = parseLastFMSessionResponse(connection.getInputStream());
                 if (result.response == AuthResponse.OK) {
                     SharedPreferences.Editor edit = prefs.edit();
                     edit.putString(SESSION_KEY_USERNAME, username);
@@ -769,9 +782,6 @@ public class LastFM {
                                                  Bitmap artBmp) {
         try {
             String directory = getCacheDir(config, filename);
-            File dir = new File(directory);
-            if (!dir.exists())
-                dir.mkdirs();
             String imageName = directory +
                                File.separator +
                                getCacheFileName(artist, album);
@@ -794,21 +804,46 @@ public class LastFM {
                                                     String artist,
                                                     String album,
                                                     String filename) {
-        String imageName = getCacheDir(config,  filename) +
-                           File.separator +
-                           getCacheFileName(artist, album);
-        File image = new File(imageName);
-        if (image.exists())
-            return AlbumArtFactory.readFile(image);
-        else
-            return null;
+        try {
+            String imageName = getCacheDir(config,  filename) +
+                               File.separator +
+                               getCacheFileName(artist, album);
+            File image = new File(imageName);
+            if (image.exists())
+                return AlbumArtFactory.readFile(image);
+            else
+                return null;
+        } catch (FileNotFoundException e) {
+            Log.e("TeaCup", "filenotfoundexception: " + e.toString());
+        } catch (IOException e) {
+            Log.e("TeaCup", "ioexception: " + e.toString());
+        }
+        return null;
     }
 
-    private static String getCacheDir(Config config, String filename) {
+    private static String getCacheDir(Config config, String filename) 
+            throws IOException, FileNotFoundException {
         switch (config.getLastFMCacheStyle()) {
-        case Config.LASTFM_CACHE_INDIR: return config.getLastFMDirectory();
-        case Config.LASTFM_CACHE_WITHMUSIC: return new File(filename).getParent();
-        default: return null;
+        case Config.LASTFM_CACHE_INDIR: 
+            String dirName = config.getLastFMDirectory();
+            File dir = new File(dirName);
+            // make sure dir exists, make .nomedia if not
+            if (!dir.exists()) {
+                dir.mkdirs();
+                File nomedia = new File(dirName + 
+                                        File.separator +
+                                        NOMEDIA);
+                FileOutputStream os = new FileOutputStream(nomedia);
+                os.flush();
+                os.close();
+            }
+            return dirName;
+
+        case Config.LASTFM_CACHE_WITHMUSIC: 
+            return new File(filename).getParent();
+
+        default: 
+            return null;
         }
     }
 
@@ -1058,17 +1093,13 @@ public class LastFM {
     }
 
 
-    private static boolean lfmIsOK(HttpResponse response) {
+    private static boolean lfmIsOK(URLConnection connection) {
         try {
-            HttpEntity entity = response.getEntity();
-            if (entity == null)
-                return false;
-
             XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
             factory.setNamespaceAware(false);
             XmlPullParser xpp = factory.newPullParser();
 
-            xpp.setInput(entity.getContent(), null);
+            xpp.setInput(connection.getInputStream(), null);
 
             int eventType = xpp.getEventType();
 
@@ -1107,20 +1138,82 @@ public class LastFM {
         return ucon;
     }
 
-    private static HttpResponse postRequest(String url,
-                                            List<NameValuePair> vals)
+    private static URLConnection postRequest(String requestURL,
+                                             List<NameValuePair> vals)
                 throws IOException, InterruptedException {
         waitForRequestPermission();
 
+
         try {
-            HttpPost post = new HttpPost(url);
-            post.setEntity(new UrlEncodedFormEntity(vals, HTTP.UTF_8));
-            HttpClient client = new DefaultHttpClient();
-            return client.execute(post);
-        } catch (ClientProtocolException e) {
-            Log.e("TeaCup", "ClientProtocolException -- i guess we did something wrong.");
+            // using code from:
+            // http://www.codejava.net/java-se/networking/an-http-utility-class-to-send-getpost-request
+            URL url = new URL(requestURL);
+            HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+            connection.setUseCaches(false);
+            // true indicates the server returns response		
+            connection.setDoInput(true); 
+            // true indicates POST request
+            connection.setDoOutput(true); 
+
+            SSLContext sslContext = getSSLContext();
+            connection.setSSLSocketFactory(sslContext.getSocketFactory());
+
+            // sends POST data
+            OutputStreamWriter writer 
+                = new OutputStreamWriter(connection.getOutputStream());
+            String params = nameValsToString(vals);
+            writer.write(params);
+            writer.flush();
+
+            return connection;
+        } catch (IOException e) {
+            Log.e("TeaCup", "IOException -- i guess we did something wrong.");
             throw new IOException("Failed to create client protocol: " + e.toString());
         }
+    }
+
+    private static String nameValsToString(List<NameValuePair> vals) {
+        if (vals == null)
+            return "";
+
+        try {
+            StringBuilder sb = new StringBuilder();
+            for (NameValuePair nv : vals) {
+                sb.append(URLEncoder.encode(nv.getName(), HTTP.UTF_8));
+                sb.append("=");
+                sb.append(URLEncoder.encode(nv.getValue(), HTTP.UTF_8));
+                sb.append("&");
+            }
+            return sb.toString();
+        } catch (UnsupportedEncodingException e) {
+            Log.e("TeaCup", "Unsupported Encoding: " + e.toString());
+        }
+        // should never reach here...
+        return null;
+    }
+
+    private static SSLContext getSSLContext() throws IOException {
+        String createError = "";
+        
+        try {
+            TrustManager[] trustManagers = {new CustomTrustManager(null)};
+            
+            SSLContext context = SSLContext.getInstance("TLS");
+            context.init(null, trustManagers, null);
+
+            return context;
+        } catch (NoSuchAlgorithmException e) {
+            Log.e("TeaCup", "NoSuchAlgorithmException -- TLS doesn't exist...?");
+            createError = e.toString();
+        } catch (KeyManagementException e) {
+            Log.e("TeaCup", "KeyManagementException -- probably cos we didn't implement any!");
+            createError = e.toString();
+        } catch (KeyStoreException e) {
+            Log.e("TeaCup", "KeyStoreException -- probably cos we didn't implement any!");
+            createError = e.toString();
+        }
+
+        throw new IOException("Failed to create SSL Context: " + createError);
     }
 
     private synchronized static void waitForRequestPermission()
