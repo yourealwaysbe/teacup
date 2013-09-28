@@ -14,6 +14,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -1151,11 +1152,7 @@ public class LastFM {
             connection.setSSLSocketFactory(sslContext.getSocketFactory());
 
             // sends POST data
-            OutputStreamWriter writer 
-                = new OutputStreamWriter(connection.getOutputStream());
-            String params = nameValsToString(vals);
-            writer.write(params);
-            writer.flush();
+            nameValsToStream(vals, connection.getOutputStream());
 
             return connection;
         } catch (IOException e) {
@@ -1164,24 +1161,24 @@ public class LastFM {
         }
     }
 
-    private static String nameValsToString(List<NameValuePair> vals) {
+    private static void nameValsToStream(List<NameValuePair> vals, 
+                                         OutputStream stream) 
+            throws IOException {
         if (vals == null)
-            return "";
+            return;
 
         try {
-            StringBuilder sb = new StringBuilder();
+            OutputStreamWriter writer = new OutputStreamWriter(stream);
             for (NameValuePair nv : vals) {
-                sb.append(URLEncoder.encode(nv.getName(), HTTP.UTF_8));
-                sb.append("=");
-                sb.append(URLEncoder.encode(nv.getValue(), HTTP.UTF_8));
-                sb.append("&");
+                writer.write(URLEncoder.encode(nv.getName(), HTTP.UTF_8));
+                writer.write("=");
+                writer.write(URLEncoder.encode(nv.getValue(), HTTP.UTF_8));
+                writer.write("&");
             }
-            return sb.toString();
+            writer.flush();
         } catch (UnsupportedEncodingException e) {
             Log.e("TeaCup", "Unsupported Encoding: " + e.toString());
         }
-        // should never reach here...
-        return null;
     }
 
     private static SSLContext getSSLContext() throws IOException {
