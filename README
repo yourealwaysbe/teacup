@@ -23,6 +23,10 @@ but seems to compile and work in emulators for 4.2 (Android 17).
 
 CHANGES
 
+    v1.5:
+        
+        Replaced some inefficient scrobbling code.
+
     v1.4:
 
         Re-orders incorrectly ordered SSL Certificates (code borrowed from
