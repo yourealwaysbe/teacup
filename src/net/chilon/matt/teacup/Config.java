@@ -21,6 +21,7 @@ import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.util.Log;
 
 public class Config {
     public static final int LASTFM_NO_CACHE = 0;
@@ -111,6 +112,24 @@ public class Config {
                                  DEFAULT_JUMP_NEXT_ACTION,
                                  DEFAULT_JUMP_NEXT_COMMAND_FIELD,
                                  DEFAULT_JUMP_NEXT_COMMAND));
+        map.put(1,
+                new PlayerConfig(1,
+                                 "CyanogenMod Eleven",
+                                 "com.cyanogenmod.eleven",
+                                 DEFAULT_META_CHANGED_ACTION,
+                                 DEFAULT_META_CHANGED_ID,
+                                 DEFAULT_PLAYSTATE_CHANGED_ACTION,
+                                 DEFAULT_PLAYSTATE_CHANGED_PLAYING,
+                                 "com.cyanogenmod.eleven.musicservicecommand",
+                                 DEFAULT_JUMP_PREVIOUS_COMMAND_FIELD,
+                                 DEFAULT_JUMP_PREVIOUS_COMMAND,
+                                 "com.cyanogenmod.eleven.musicservicecommand",
+                                 DEFAULT_PLAY_PAUSE_COMMAND_FIELD,
+                                 DEFAULT_PLAY_PAUSE_COMMAND,
+                                 "com.cyanogenmod.eleven.musicservicecommand",
+                                 DEFAULT_JUMP_NEXT_COMMAND_FIELD,
+                                 DEFAULT_JUMP_NEXT_COMMAND));
+
         return map;
     }
 
@@ -350,7 +369,7 @@ public class Config {
             return CUSTOM_PLAYER_ID;
         } else {
             for (int i = 0; i < defaultPlayers.size(); ++i) {
-                if (defaultPlayers.valueAt(i).equals(playerName))
+                if (defaultPlayers.valueAt(i).getName().equals(playerName))
                     return defaultPlayers.keyAt(i);
             }
             return DEFAULT_PLAYER_ID;

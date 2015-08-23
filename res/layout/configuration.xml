@@ -309,6 +309,13 @@
             android:text="@string/androidplayer"
             android:onClick="onClickPlayerSelectRadioGroup" />
 
+        <RadioButton
+            android:id="@+id/cyanogenmodPlayer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/cyanogenmodplayer"
+            android:onClick="onClickPlayerSelectRadioGroup" />
+
        <RadioButton
             android:id="@+id/customPlayer"
             android:layout_width="match_parent"

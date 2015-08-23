@@ -55,6 +55,7 @@
     <string name="playerSelected">Android Player</string>
     <string name="selectPlayerDesc">The music application for the widget.</string>
     <string name="androidplayer">Android Player</string>
+    <string name="cyanogenmodplayer">CyanogenMod Eleven</string>
     <string name="customplayer">Custom Player</string>
 
     <string name="metaChangedAction">Metadata changed intent</string>
