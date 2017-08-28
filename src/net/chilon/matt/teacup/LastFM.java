@@ -420,7 +420,7 @@ public class LastFM {
         }
     }
 
-    public static AuthResult testLastFMAuthentication(Context context, 
+    public static AuthResult testLastFMAuthentication(Context context,
                                                       Config config) {
         boolean wifi = config.getLastFMScrobbleWifi();
         boolean network = config.getLastFMScrobbleNetwork();
@@ -686,13 +686,13 @@ public class LastFM {
         }
     }
 
-    
+
     private static String pureGetSessionKey(Context context,
                                             Config config,
                                             boolean tryStoredKey)
                 throws IOException, InterruptedException {
         AuthResult result = getSessionKey(context,  config,  true);
-        if (result.getResponse() != AuthResponse.OK) 
+        if (result.getResponse() != AuthResponse.OK)
             throw new IOException(result.getValue());
         return result.getValue();
     }
@@ -814,16 +814,16 @@ public class LastFM {
         return null;
     }
 
-    private static String getCacheDir(Config config, String filename) 
+    private static String getCacheDir(Config config, String filename)
             throws IOException, FileNotFoundException {
         switch (config.getLastFMCacheStyle()) {
-        case Config.LASTFM_CACHE_INDIR: 
+        case Config.LASTFM_CACHE_INDIR:
             String dirName = config.getLastFMDirectory();
             File dir = new File(dirName);
             // make sure dir exists, make .nomedia if not
             if (!dir.exists()) {
                 dir.mkdirs();
-                File nomedia = new File(dirName + 
+                File nomedia = new File(dirName +
                                         File.separator +
                                         NOMEDIA);
                 FileOutputStream os = new FileOutputStream(nomedia);
@@ -832,10 +832,10 @@ public class LastFM {
             }
             return dirName;
 
-        case Config.LASTFM_CACHE_WITHMUSIC: 
+        case Config.LASTFM_CACHE_WITHMUSIC:
             return new File(filename).getParent();
 
-        default: 
+        default:
             return null;
         }
     }
@@ -1066,7 +1066,7 @@ public class LastFM {
                         value = (text == null ? null : text.trim());
                     }
                 }
-                
+
                 xpp.next();
                 eventType = xpp.getEventType();
             }
@@ -1143,10 +1143,10 @@ public class LastFM {
             URL url = new URL(requestURL);
             HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
             connection.setUseCaches(false);
-            // true indicates the server returns response		
-            connection.setDoInput(true); 
+            // true indicates the server returns response
+            connection.setDoInput(true);
             // true indicates POST request
-            connection.setDoOutput(true); 
+            connection.setDoOutput(true);
 
             SSLContext sslContext = getSSLContext();
             connection.setSSLSocketFactory(sslContext.getSocketFactory());
@@ -1161,8 +1161,8 @@ public class LastFM {
         }
     }
 
-    private static void nameValsToStream(List<NameValuePair> vals, 
-                                         OutputStream stream) 
+    private static void nameValsToStream(List<NameValuePair> vals,
+                                         OutputStream stream)
             throws IOException {
         if (vals == null)
             return;
@@ -1183,10 +1183,10 @@ public class LastFM {
 
     private static SSLContext getSSLContext() throws IOException {
         String createError = "";
-        
+
         try {
             TrustManager[] trustManagers = {new CustomTrustManager(null)};
-            
+
             SSLContext context = SSLContext.getInstance("TLS");
             context.init(null, trustManagers, null);
 
