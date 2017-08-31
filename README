@@ -22,6 +22,9 @@ but seems to compile and work in emulators for 4.2 (Android 17).
 
 
 CHANGES
+    v1.7
+
+        Changed layout to meet recommended standards for 4x1 widgets.
 
     v1.6:
         
